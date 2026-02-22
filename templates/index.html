@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AgroGuard AI</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  margin: 0;
+}
+
+.header {
+  background: #1b5e20;
+  color: white;
+  padding: 15px;
+  text-align: center;
+}
+
+.container {
+  padding: 15px;
+}
+
+.cards {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.card {
+  flex: 1;
+  min-width: 140px;
+  background: white;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  text-align: center;
+}
+
+.card h2 {
+  margin: 5px 0;
+  color: #1b5e20;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+  gap: 15px;
+}
+
+.event {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+}
+
+.event img {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+}
+
+.info {
+  padding: 10px;
+}
+
+.pest {
+  font-weight: bold;
+  color: #c62828;
+}
+
+.conf {
+  color: #555;
+  font-size: 13px;
+}
+
+.advice {
+  margin-top: 6px;
+  background: #e8f5e9;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+  <h1>AgroGuard AI</h1>
+  <div>Autonomous Crop Protection System</div>
+</div>
+
+<div class="container">
+
+<div class="cards">
+  <div class="card">
+    <div>Total Events</div>
+    <h2>{{ events|length }}</h2>
+  </div>
+
+  <div class="card">
+    <div>System</div>
+    <h2>Active</h2>
+  </div>
+
+  <div class="card">
+    <div>Last Alert</div>
+    <h2>
+      {% if events %}
+        {{ events[0][0] }}
+      {% else %}
+        None
+      {% endif %}
+    </h2>
+  </div>
+</div>
+
+<h3>Pest Activity</h3>
+
+<div class="gallery">
+{% for e in events %}
+  <div class="event">
+    <img src="{{ e[3] }}">
+    <div class="info">
+      <div class="pest">{{ e[1] }}</div>
+      <div class="conf">Confidence: {{ "%.2f"|format(e[2]) }}</div>
+      <div class="conf">Time: {{ e[0] }}</div>
+      <div class="advice">{{ e[4] }}</div>
+    </div>
+  </div>
+{% endfor %}
+</div>
+
+</div>
+
+</body>
+</html>

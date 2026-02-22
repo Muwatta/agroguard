@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>AgroGuard AI Dashboard</title>
+</head>
+<body>
+<h1>AgroGuard AI Pest Dashboard</h1>
+
+<select id="language" onchange="translateDashboard()">
+    <option value="en">English</option>
+    <option value="ha">Hausa</option>
+    <option value="yo">Yoruba</option>
+    <option value="ig">Igbo</option>
+    <option value="ar">Arabic</option>
+</select>
+
+<div id="events"></div>
+
+<script>
+let lang = "en";
+
+async function loadEvents(){
+    const res = await fetch("/api/events");
+    const data = await res.json();
+    let html = "<ul>";
+    data.forEach(e => {
+        html += `<li>${e.pest} at ${e.time} - Deterrent: ${e.deterrent}<br><img src="${e.image}" width="120"></li>`;
+    });
+    html += "</ul>";
+    document.getElementById("events").innerHTML = html;
+}
+
+function translateDashboard(){
+    lang = document.getElementById("language").value;
+    // Placeholder: integrate with AI translation API if needed
+}
+
+setInterval(loadEvents, 3000);
+loadEvents();
+</script>
+</body>
+</html>
