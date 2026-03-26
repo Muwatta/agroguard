@@ -27,12 +27,10 @@ print("Advisory imported")
 from storage import log_event, get_events
 print("Storage imported")
 
-# CREATE FLASK APP FIRST
 app = Flask(__name__)
 print("Flask app created")
 
-# Initialize camera
-camera = Camera(0)  # or Camera("http://PHONE_IP:8080/video")
+camera = Camera(0)  
 camera.start()
 
 # Template filter for datetime

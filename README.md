@@ -10,12 +10,14 @@
 
 | Component | Status |
 |---|---|
-| Disease Classifier | ✅ Complete |
+| Disease Classifier | ⚠️ Dummy Mode (needs real model) |
 | Computer Vision Pipeline | ✅ Complete |
 | Growth Tracker | ✅ Complete |
 | Advisory Engine | ✅ Complete |
 | Storage Layer | ✅ Complete |
 | Web Interface | ✅ Complete |
+| Live Video Streaming | ✅ Complete |
+| Mobile Access | ✅ Complete |
 
 ---
 

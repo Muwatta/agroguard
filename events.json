@@ -1,303 +1,51 @@
 [
   [
-    1774518167,
-    "armyworm",
-    0.8804344840426073,
-    "static/captures\\cap_1774518167.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
+    1774520484,
+    "bird",
+    0.8534961057699678,
+    "static/captures\\cap_1774520484.jpg",
+    "Install bird netting or reflective tape to deter birds."
   ],
   [
     1774502421,
-    "armyworm",
-    0.9013064417937782,
+    "bird",
+    0.7899718853091889,
     "static/captures\\cap_1774502421.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502419,
+    "grasshopper",
+    0.9262058366394927,
+    "static/captures\\cap_1774502419.jpg",
+    "Use biological control with Nosema locustae or neem oil."
   ],
   [
     1774502417,
-    "armyworm",
-    0.8713173598768548,
+    "beetle",
+    0.8040417537832012,
     "static/captures\\cap_1774502417.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502416,
-    "beetle",
-    0.824241103148041,
-    "static/captures\\cap_1774502416.jpg",
     "Use pheromone traps or hand-pick beetles in early morning."
   ],
   [
-    1774502413,
-    "bird",
-    0.8954079968981254,
-    "static/captures\\cap_1774502413.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502411,
-    "bird",
-    0.9359606715304226,
-    "static/captures\\cap_1774502411.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502406,
-    "bird",
-    0.8890717300779339,
-    "static/captures\\cap_1774502406.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502401,
-    "bird",
-    0.8714093958775131,
-    "static/captures\\cap_1774502401.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502399,
+    1774502415,
     "weevil",
-    0.8687905218860283,
-    "static/captures\\cap_1774502399.jpg",
+    0.8168914091602366,
+    "static/captures\\cap_1774502415.jpg",
     "Apply diatomaceous earth around plant bases."
   ],
   [
-    1774502395,
+    1774502412,
+    "bird",
+    0.7691663204009667,
+    "static/captures\\cap_1774502412.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502410,
     "beetle",
-    0.772914911604689,
-    "static/captures\\cap_1774502395.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
-  ],
-  [
-    1774502391,
-    "armyworm",
-    0.8083157744873198,
-    "static/captures\\cap_1774502391.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502390,
-    "grasshopper",
-    0.8605564293421208,
-    "static/captures\\cap_1774502390.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502386,
-    "armyworm",
-    0.7729113934746138,
-    "static/captures\\cap_1774502386.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502382,
-    "grasshopper",
-    0.7984146037475428,
-    "static/captures\\cap_1774502382.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502381,
-    "bird",
-    0.8779557213965932,
-    "static/captures\\cap_1774502381.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502376,
-    "beetle",
-    0.7516644934405208,
-    "static/captures\\cap_1774502376.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
-  ],
-  [
-    1774502372,
-    "bird",
-    0.9256074792081254,
-    "static/captures\\cap_1774502372.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502369,
-    "weevil",
-    0.8605644355693506,
-    "static/captures\\cap_1774502369.jpg",
-    "Apply diatomaceous earth around plant bases."
-  ],
-  [
-    1774502368,
-    "grasshopper",
-    0.8400070778001903,
-    "static/captures\\cap_1774502368.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502363,
-    "bird",
-    0.925582864794667,
-    "static/captures\\cap_1774502363.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502361,
-    "armyworm",
-    0.8382402381687364,
-    "static/captures\\cap_1774502361.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502356,
-    "beetle",
-    0.7695802290114261,
-    "static/captures\\cap_1774502356.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
-  ],
-  [
-    1774502354,
-    "bird",
-    0.8377844856329181,
-    "static/captures\\cap_1774502354.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502352,
-    "bird",
-    0.7949156705778871,
-    "static/captures\\cap_1774502352.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502349,
-    "armyworm",
-    0.8265143076553091,
-    "static/captures\\cap_1774502349.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502346,
-    "armyworm",
-    0.8017166168716836,
-    "static/captures\\cap_1774502346.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502349,
-    "bird",
-    0.9114760420783709,
-    "static/captures\\cap_1774502349.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502353,
-    "weevil",
-    0.9488523412134704,
-    "static/captures\\cap_1774502353.jpg",
-    "Apply diatomaceous earth around plant bases."
-  ],
-  [
-    1774502355,
-    "grasshopper",
-    0.7905203610781443,
-    "static/captures\\cap_1774502355.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502359,
-    "grasshopper",
-    0.8708866859114868,
-    "static/captures\\cap_1774502359.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502362,
-    "grasshopper",
-    0.9499616652573785,
-    "static/captures\\cap_1774502362.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502367,
-    "beetle",
-    0.9460980262484491,
-    "static/captures\\cap_1774502367.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
-  ],
-  [
-    1774502368,
-    "bird",
-    0.8252752151022164,
-    "static/captures\\cap_1774502368.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502370,
-    "bird",
-    0.8750520291157368,
-    "static/captures\\cap_1774502370.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502374,
-    "beetle",
-    0.7523365041305988,
-    "static/captures\\cap_1774502374.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
-  ],
-  [
-    1774502378,
-    "beetle",
-    0.8202713548286953,
-    "static/captures\\cap_1774502378.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
-  ],
-  [
-    1774502382,
-    "armyworm",
-    0.8766843441259276,
-    "static/captures\\cap_1774502382.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502384,
-    "grasshopper",
-    0.8454002999459886,
-    "static/captures\\cap_1774502384.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502390,
-    "grasshopper",
-    0.7622794796392985,
-    "static/captures\\cap_1774502390.jpg",
-    "Use biological control with Nosema locustae or neem oil."
-  ],
-  [
-    1774502391,
-    "bird",
-    0.8968819539216911,
-    "static/captures\\cap_1774502391.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502394,
-    "armyworm",
-    0.7911246236727132,
-    "static/captures\\cap_1774502394.jpg",
-    "Apply biological pesticides like Bt or neem oil immediately."
-  ],
-  [
-    1774502396,
-    "weevil",
-    0.7649011111426397,
-    "static/captures\\cap_1774502396.jpg",
-    "Apply diatomaceous earth around plant bases."
-  ],
-  [
-    1774502400,
-    "beetle",
-    0.7567734075119905,
-    "static/captures\\cap_1774502400.jpg",
+    0.8590957082222526,
+    "static/captures\\cap_1774502410.jpg",
     "Use pheromone traps or hand-pick beetles in early morning."
   ],
   [
@@ -308,52 +56,304 @@
     "Use pheromone traps or hand-pick beetles in early morning."
   ],
   [
-    1774502410,
+    1774502400,
     "beetle",
-    0.8590957082222526,
-    "static/captures\\cap_1774502410.jpg",
+    0.7567734075119905,
+    "static/captures\\cap_1774502400.jpg",
     "Use pheromone traps or hand-pick beetles in early morning."
   ],
   [
-    1774502412,
-    "bird",
-    0.7691663204009667,
-    "static/captures\\cap_1774502412.jpg",
-    "Install bird netting or reflective tape to deter birds."
-  ],
-  [
-    1774502415,
+    1774502396,
     "weevil",
-    0.8168914091602366,
-    "static/captures\\cap_1774502415.jpg",
+    0.7649011111426397,
+    "static/captures\\cap_1774502396.jpg",
     "Apply diatomaceous earth around plant bases."
   ],
   [
-    1774502417,
-    "beetle",
-    0.8040417537832012,
-    "static/captures\\cap_1774502417.jpg",
-    "Use pheromone traps or hand-pick beetles in early morning."
+    1774502394,
+    "armyworm",
+    0.7911246236727132,
+    "static/captures\\cap_1774502394.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
   ],
   [
-    1774502419,
+    1774502391,
+    "bird",
+    0.8968819539216911,
+    "static/captures\\cap_1774502391.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502390,
     "grasshopper",
-    0.9262058366394927,
-    "static/captures\\cap_1774502419.jpg",
+    0.7622794796392985,
+    "static/captures\\cap_1774502390.jpg",
     "Use biological control with Nosema locustae or neem oil."
   ],
   [
-    1774502421,
+    1774502384,
+    "grasshopper",
+    0.8454002999459886,
+    "static/captures\\cap_1774502384.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502382,
+    "armyworm",
+    0.8766843441259276,
+    "static/captures\\cap_1774502382.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502378,
+    "beetle",
+    0.8202713548286953,
+    "static/captures\\cap_1774502378.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502374,
+    "beetle",
+    0.7523365041305988,
+    "static/captures\\cap_1774502374.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502370,
     "bird",
-    0.7899718853091889,
-    "static/captures\\cap_1774502421.jpg",
+    0.8750520291157368,
+    "static/captures\\cap_1774502370.jpg",
     "Install bird netting or reflective tape to deter birds."
   ],
   [
-    1774518172,
+    1774502368,
+    "bird",
+    0.8252752151022164,
+    "static/captures\\cap_1774502368.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502367,
+    "beetle",
+    0.9460980262484491,
+    "static/captures\\cap_1774502367.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502362,
+    "grasshopper",
+    0.9499616652573785,
+    "static/captures\\cap_1774502362.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502359,
+    "grasshopper",
+    0.8708866859114868,
+    "static/captures\\cap_1774502359.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502355,
+    "grasshopper",
+    0.7905203610781443,
+    "static/captures\\cap_1774502355.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502353,
     "weevil",
-    0.8112175350236798,
-    "static/captures\\cap_1774518172.jpg",
+    0.9488523412134704,
+    "static/captures\\cap_1774502353.jpg",
     "Apply diatomaceous earth around plant bases."
+  ],
+  [
+    1774502349,
+    "bird",
+    0.9114760420783709,
+    "static/captures\\cap_1774502349.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502346,
+    "armyworm",
+    0.8017166168716836,
+    "static/captures\\cap_1774502346.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502349,
+    "armyworm",
+    0.8265143076553091,
+    "static/captures\\cap_1774502349.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502352,
+    "bird",
+    0.7949156705778871,
+    "static/captures\\cap_1774502352.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502354,
+    "bird",
+    0.8377844856329181,
+    "static/captures\\cap_1774502354.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502356,
+    "beetle",
+    0.7695802290114261,
+    "static/captures\\cap_1774502356.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502361,
+    "armyworm",
+    0.8382402381687364,
+    "static/captures\\cap_1774502361.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502363,
+    "bird",
+    0.925582864794667,
+    "static/captures\\cap_1774502363.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502368,
+    "grasshopper",
+    0.8400070778001903,
+    "static/captures\\cap_1774502368.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502369,
+    "weevil",
+    0.8605644355693506,
+    "static/captures\\cap_1774502369.jpg",
+    "Apply diatomaceous earth around plant bases."
+  ],
+  [
+    1774502372,
+    "bird",
+    0.9256074792081254,
+    "static/captures\\cap_1774502372.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502376,
+    "beetle",
+    0.7516644934405208,
+    "static/captures\\cap_1774502376.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502381,
+    "bird",
+    0.8779557213965932,
+    "static/captures\\cap_1774502381.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502382,
+    "grasshopper",
+    0.7984146037475428,
+    "static/captures\\cap_1774502382.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502386,
+    "armyworm",
+    0.7729113934746138,
+    "static/captures\\cap_1774502386.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502390,
+    "grasshopper",
+    0.8605564293421208,
+    "static/captures\\cap_1774502390.jpg",
+    "Use biological control with Nosema locustae or neem oil."
+  ],
+  [
+    1774502391,
+    "armyworm",
+    0.8083157744873198,
+    "static/captures\\cap_1774502391.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502395,
+    "beetle",
+    0.772914911604689,
+    "static/captures\\cap_1774502395.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502399,
+    "weevil",
+    0.8687905218860283,
+    "static/captures\\cap_1774502399.jpg",
+    "Apply diatomaceous earth around plant bases."
+  ],
+  [
+    1774502401,
+    "bird",
+    0.8714093958775131,
+    "static/captures\\cap_1774502401.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502406,
+    "bird",
+    0.8890717300779339,
+    "static/captures\\cap_1774502406.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502411,
+    "bird",
+    0.9359606715304226,
+    "static/captures\\cap_1774502411.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502413,
+    "bird",
+    0.8954079968981254,
+    "static/captures\\cap_1774502413.jpg",
+    "Install bird netting or reflective tape to deter birds."
+  ],
+  [
+    1774502416,
+    "beetle",
+    0.824241103148041,
+    "static/captures\\cap_1774502416.jpg",
+    "Use pheromone traps or hand-pick beetles in early morning."
+  ],
+  [
+    1774502417,
+    "armyworm",
+    0.8713173598768548,
+    "static/captures\\cap_1774502417.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774502421,
+    "armyworm",
+    0.9013064417937782,
+    "static/captures\\cap_1774502421.jpg",
+    "Apply biological pesticides like Bt or neem oil immediately."
+  ],
+  [
+    1774520486,
+    "bird",
+    0.8753645924150362,
+    "static/captures\\cap_1774520486.jpg",
+    "Install bird netting or reflective tape to deter birds."
   ]
 ]

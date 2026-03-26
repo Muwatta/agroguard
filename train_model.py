@@ -15,7 +15,6 @@ model = Model(inputs=base_model.input, outputs=predictions)
 # Compile
 model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
 
-# Save as TFLite (you'll need to train with your data first)
 converter = tf.lite.TFLiteConverter.from_keras_model(model)
 tflite_model = converter.convert()
 with open('model/pest_model.tflite', 'wb') as f:
