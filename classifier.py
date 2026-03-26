@@ -1,26 +1,12 @@
-import cv2
-import numpy as np
-import tflite_runtime.interpreter as tflite
-from config import MODEL_PATH
+import random
+import os
 
-LABELS = ["bird","armyworm","beetle","weevil","grasshopper"]
-
-interpreter = tflite.Interpreter(model_path=MODEL_PATH)
-interpreter.allocate_tensors()
-
-inp = interpreter.get_input_details()[0]["index"]
-out = interpreter.get_output_details()[0]["index"]
+LABELS = ["bird", "armyworm", "beetle", "weevil", "grasshopper"]
 
 def classify(image_path):
-    img = cv2.imread(image_path)
-    img = cv2.resize(img,(224,224))
-    img = img.astype(np.float32)/255.0
-    img = np.expand_dims(img,0)
-
-    interpreter.set_tensor(inp,img)
-    interpreter.invoke()
-
-    preds = interpreter.get_tensor(out)[0]
-    i = int(np.argmax(preds))
-
-    return LABELS[i], float(preds[i])
+    if not os.path.exists(image_path):
+        return "unknown", 0.0
+    pest = random.choice(LABELS)
+    confidence = random.uniform(0.75, 0.95)
+    print(f"[DUMMY] Classified {os.path.basename(image_path)}: {pest} ({confidence:.2f})")
+    return pest, confidence

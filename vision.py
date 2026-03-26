@@ -1,26 +1,31 @@
-import cv2
+# vision.py - dummy version for testing
 import numpy as np
-import tflite_runtime.interpreter as tflite
-from config import MODEL_PATH
+import cv2
+import os
+import time
 
-LABELS = ["bird","armyworm","beetle","weevil","grasshopper"]
+def detect_motion():
+    """Dummy motion detection - returns a blank frame with random motion"""
+    # Create a blank image
+    frame = np.zeros((480, 640, 3), dtype=np.uint8)
+    
+    # Simulate motion detection (True 30% of the time)
+    motion = np.random.random() > 0.7
+    
+    if motion:
+        # Draw something on the frame to simulate detection
+        cv2.circle(frame, (320, 240), 50, (0, 255, 0), -1)
+    
+    return frame, motion
 
-interpreter = tflite.Interpreter(model_path=MODEL_PATH)
-interpreter.allocate_tensors()
-
-inp = interpreter.get_input_details()[0]["index"]
-out = interpreter.get_output_details()[0]["index"]
-
-def classify(image_path):
-    img = cv2.imread(image_path)
-    img = cv2.resize(img,(224,224))
-    img = img.astype(np.float32)/255.0
-    img = np.expand_dims(img,0)
-
-    interpreter.set_tensor(inp,img)
-    interpreter.invoke()
-
-    preds = interpreter.get_tensor(out)[0]
-    i = int(np.argmax(preds))
-
-    return LABELS[i], float(preds[i])
+def save_capture(frame):
+    """Save frame to disk"""
+    capture_dir = "static/captures"
+    os.makedirs(capture_dir, exist_ok=True)
+    
+    timestamp = int(time.time())
+    filename = f"cap_{timestamp}.jpg"
+    filepath = os.path.join(capture_dir, filename)
+    
+    cv2.imwrite(filepath, frame)
+    return filepath, timestamp

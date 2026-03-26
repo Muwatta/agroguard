@@ -1,24 +1,24 @@
-import cv2
 import time
-import os
-from config import CAMERA_URL, CAPTURE_DIR
 
-cap = cv2.VideoCapture(CAMERA_URL)
-bg = cv2.createBackgroundSubtractorMOG2()
+# Store visit timestamps
+visits = {}
 
-def detect_motion():
-    ret, frame = cap.read()
-    if not ret:
-        return None, False
-
-    mask = bg.apply(frame)
-    motion = mask.sum() > 500000
-
-    return frame, motion
-
-
-def save_capture(frame):
-    ts = time.strftime("%Y%m%d_%H%M%S")
-    path = os.path.join(CAPTURE_DIR, f"{ts}.jpg")
-    cv2.imwrite(path, frame)
-    return path, ts
+def register_visit(pest):
+    """
+    Register a pest visit and return True if it's persistent
+    """
+    now = time.time()
+    
+    if pest not in visits:
+        visits[pest] = []
+    
+    # Add current timestamp
+    visits[pest].append(now)
+    
+    # Remove old visits outside window (5 minutes)
+    window = 300  # VISIT_WINDOW_SEC
+    visits[pest] = [t for t in visits[pest] if now - t < window]
+    
+    # Return True if persistent (2+ visits in window)
+    threshold = 2  # VISIT_THRESHOLD
+    return len(visits[pest]) >= threshold
