@@ -5,3 +5,4 @@ venv
 env
 .venv
 static/captures/
+events.json
