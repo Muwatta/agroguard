@@ -1,13 +1,13 @@
 import os
-
-os.environ['OPENCV_VIDEOIO_PRIORITY_BACKEND'] = 'DSHOW' 
+os.environ['OPENCV_VIDEOIO_PRIORITY_BACKEND'] = 'DSHOW'
 
 CAPTURE_DIR = "static/captures"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODEL_PATH = os.path.join(BASE_DIR, "model", "pest_model.tflite")
 
-# Remove the space at the end!
-CAMERA_URL = "http://192.168.1.50:8080/video"
+CAMERA_URL = 0
+RELAY_PIN = 17
+BUZZER_PIN = 27
 
 VISIT_WINDOW_SEC = 300
 VISIT_THRESHOLD = 2

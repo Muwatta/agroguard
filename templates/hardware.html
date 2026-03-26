@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Hardware Control{% endblock %}
+{% block page_title %}Hardware Control Panel{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-md-6">
+    <div class="stat-card">
+      <h5>System Status</h5>
+      <div class="mb-3">
+        <span class="badge bg-{% if status.mode == 'REAL' %}success{% else %}warning{% endif %}">
+          {{ status.mode }} MODE
+        </span>
+        <span class="badge bg-info">{{ platform }}</span>
+      </div>
+      
+      <div class="d-flex justify-content-between mb-2">
+        <span>Sprinkler</span>
+        <span class="badge bg-{% if status.sprinkler %}success{% else %}secondary{% endif %}">
+          {{ 'ON' if status.sprinkler else 'OFF' }}
+        </span>
+      </div>
+      
+      <div class="d-flex justify-content-between mb-2">
+        <span>Soil Moisture</span>
+        <span class="badge bg-primary">{{ status.soil_moisture }}%</span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="col-md-6">
+    <div class="stat-card">
+      <h5>Manual Controls</h5>
+      <button class="btn btn-primary w-100 mb-2" onclick="triggerSprinkler()">
+        <i class="bi bi-droplet"></i> Test Sprinkler (5s)
+      </button>
+      <button class="btn btn-warning w-100 mb-2" onclick="triggerBuzzer()">
+        <i class="bi bi-bell"></i> Test Buzzer
+      </button>
+      <button class="btn btn-info w-100" onclick="refreshSensors()">
+        <i class="bi bi-arrow-clockwise"></i> Refresh Sensors
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-12">
+    <div class="stat-card">
+      <h5>Arduino Status</h5>
+      <div class="alert alert-{% if arduino_connected %}success{% else %}warning{% endif %}">
+        {% if arduino_connected %}
+          ✅ Arduino connected - Real sensors active
+        {% else %}
+          ℹ️ Arduino not connected - Simulation mode
+        {% endif %}
+      </div>
+      <pre id="sensor-data" class="bg-dark text-light p-3 rounded">Click "Refresh Sensors" to read data</pre>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function triggerSprinkler() {
+  fetch('/api/sprinkler', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({duration: 5})
+  }).then(r => r.json()).then(data => {
+    alert(data.message);
+  });
+}
+
+function triggerBuzzer() {
+  fetch('/api/buzzer', {method: 'POST'})
+    .then(r => r.json())
+    .then(data => alert(data.message));
+}
+
+function refreshSensors() {
+  fetch('/api/sensors')
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('sensor-data').textContent = JSON.stringify(data, null, 2);
+    });
+}
+</script>
+{% endblock %}
