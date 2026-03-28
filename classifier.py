@@ -7,7 +7,6 @@ import os
 import numpy as np
 import cv2
 
-# Try to import tflite_runtime (Pi) or fallback to tensorflow (PC)
 try:
     from tflite_runtime.interpreter import Interpreter
     print("Using tflite_runtime (optimized for Pi)")
