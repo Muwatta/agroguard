@@ -77,8 +77,11 @@ class PestClassifier:
             image = image_path
         
         if self.interpreter is None:
-            import random
-            return random.choice(self.class_names), random.uniform(0.75, 0.98)
+            # Fallback mode when TensorFlow Lite is not available.
+            # Avoid random pest alarms by returning stable "none" output.
+            from config import CONF_THRESHOLD
+            print("WARNING: No TFLite interpreter available; classifier fallback to 'none'. Install tflite_runtime or tensorflow to enable real model inference.")
+            return "none", 1.0
         
         input_data = self.preprocess(image)
         self.interpreter.set_tensor(self.input_details[0]['index'], input_data)

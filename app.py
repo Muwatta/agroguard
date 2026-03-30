@@ -51,9 +51,12 @@ def agroguard_loop():
         pest, conf = classify(img_path)
         print(f"Classified: {pest} ({conf:.2f})")
 
-        if conf < 0.6:
+        from config import CONF_THRESHOLD
+
+        if pest in ["none", "unidentified"] or conf < CONF_THRESHOLD:
             return
 
+        # Require persistence to reduce transient false positives
         persistent = register_visit(pest)
         if not persistent:
             return
