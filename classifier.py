@@ -11,18 +11,24 @@ try:
     from tflite_runtime.interpreter import Interpreter
     print("Using tflite_runtime (optimized for Pi)")
 except ImportError:
-    from tensorflow.lite.python.interpreter import Interpreter
-    print("Using TensorFlow Lite (development mode)")
+    try:
+        from tensorflow.lite.python.interpreter import Interpreter
+        print("Using TensorFlow Lite (development mode)")
+    except ImportError:
+        Interpreter = None
+        print("No TFLite interpreter available; using randomized fallback classifier.")
 
 class PestClassifier:
-    def __init__(self, model_path='model/pest_model.tflite', confidence_threshold=0.90):
-        self.model_path = model_path
-        self.confidence_threshold = confidence_threshold
+    def __init__(self, model_path='model/pest_model.tflite', confidence_threshold=None):
+        from config import MODEL_PATH, CONF_THRESHOLD
+        self.model_path = model_path or MODEL_PATH
+        self.confidence_threshold = CONF_THRESHOLD if confidence_threshold is None else confidence_threshold
         self.interpreter = None
         self.input_shape = (224, 224)
-        self.class_names = ['armyworm', 'beetle', 'crow', 'grasshopper', 'weevil']
+        # Ordered class names including no-pest class
+        self.class_names = ['armyworm', 'beetle', 'crow', 'grasshopper', 'weevil', 'none']
         self.floating_model = False
-        
+
         self._load_model()
     
     def _load_model(self):
@@ -84,7 +90,9 @@ class PestClassifier:
             scale, zero_point = self.output_details[0]['quantization']
             output_data = scale * (output_data - zero_point)
         
-        probs = {name: float(output_data[i]) for i, name in enumerate(self.class_names)}
+        # Align class labels with model output dims
+        model_classes = self.class_names[:len(output_data)]
+        probs = {name: float(output_data[i]) for i, name in enumerate(model_classes)}
         sorted_probs = sorted(probs.items(), key=lambda x: x[1], reverse=True)
         
         top_class = sorted_probs[0][0]

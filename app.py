@@ -41,7 +41,7 @@ def inject_globals():
 
 def agroguard_loop():
     try:
-        frame, motion = detect_motion()
+        frame, motion = detect_motion(camera)
         if not motion:
             return
 
@@ -159,6 +159,16 @@ def api_sensors():
         "hardware": hardware.get_status(),
         "arduino": arduino.get_sensor_data() if arduino.connected else None
     })
+
+
+@app.route("/api/retrain", methods=["POST"])
+def api_retrain():
+    import subprocess
+    try:
+        result = subprocess.run(["python", "retrain_with_none.py"], capture_output=True, text=True, check=True)
+        return jsonify({"status": "success", "output": result.stdout})
+    except subprocess.CalledProcessError as e:
+        return jsonify({"status": "error", "error": e.stderr}), 500
 
 if __name__ == "__main__":
     def detection_thread():

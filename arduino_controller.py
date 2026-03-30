@@ -4,7 +4,13 @@ Arduino Controller via Serial USB
 Works on Windows (COM port) and Linux (/dev/ttyUSB0)
 """
 
-import serial
+try:
+    import serial
+    SERIAL_AVAILABLE = True
+except ImportError:
+    serial = None
+    SERIAL_AVAILABLE = False
+
 import time
 import threading
 import platform
@@ -20,20 +26,25 @@ class ArduinoController:
             ports = ['COM3', 'COM4', 'COM5', 'COM6']
         else:
             ports = ['/dev/ttyUSB0', '/dev/ttyACM0', '/dev/ttyUSB1']
-        
-        for port in ports:
-            try:
-                self.serial = serial.Serial(port, 9600, timeout=2)
-                time.sleep(2)  # Wait for Arduino reset
-                self.connected = True
-                self.simulation_mode = False
-                print(f"✅ Arduino connected on {port}")
-                break
-            except Exception as e:
-                continue
-        
-        if not self.connected:
-            print("ℹ️ Arduino not connected - running in simulation mode")
+
+        if SERIAL_AVAILABLE:
+            for port in ports:
+                try:
+                    self.serial = serial.Serial(port, 9600, timeout=2)
+                    time.sleep(2)  # Wait for Arduino reset
+                    self.connected = True
+                    self.simulation_mode = False
+                    print(f"✅ Arduino connected on {port}")
+                    break
+                except Exception:
+                    continue
+
+            if not self.connected:
+                print("ℹ️ Arduino not connected - running in simulation mode")
+        else:
+            self.connected = False
+            self.simulation_mode = True
+            print("ℹ️ pyserial not installed - Arduino simulation mode")
     
     def send_command(self, command):
         """Send command to Arduino"""
