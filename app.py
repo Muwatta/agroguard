@@ -12,7 +12,7 @@ print(f"Starting AgroGuard AI on {platform.system()}")
 
 from camera import Camera, gen_frames
 from vision import detect_motion, save_capture
-from classifier import classify
+from classifier import classify, get_classifier
 from tracker import register_visit
 from advisory import get_advice
 from storage import log_event, get_events
@@ -86,7 +86,17 @@ def index():
     pest_counts = Counter(e[1] for e in events)
     today = datetime.now().date()
     captures_today = len([e for e in events if datetime.fromtimestamp(e[0]).date() == today])
-    
+
+    # Active alerts = recent relevant pest detections
+    critical_pests = {"armyworm", "beetle", "weevil", "grasshopper", "bird"}
+    active_alerts = len([e for e in events if e[1] in critical_pests and e[2] >= 0.80])
+
+    # AI model status from classifier
+    model_status = "Active" if get_classifier().interpreter is not None else "Fallback"
+
+    # Camera status
+    camera_status = "Online" if camera.camera and camera.camera.isOpened() else "Offline"
+
     return render_template("index.html",
                          events=events[:10],
                          total_events=total,
@@ -95,7 +105,9 @@ def index():
                          pest_counts=list(pest_counts.values()),
                          last_alert_time=format_datetime(events[0][0]) if events else "None",
                          captures_today=captures_today,
-                         total_alerts=total)
+                         total_alerts=active_alerts,
+                         ai_model_status=model_status,
+                         camera_status=camera_status)
 
 @app.route("/live")
 def live_feed():

@@ -32,6 +32,11 @@ class PestClassifier:
         self._load_model()
     
     def _load_model(self):
+        if Interpreter is None:
+            print("No TFLite interpreter available; using deterministic 'none' fallback classifier.")
+            self.interpreter = None
+            return
+
         if not os.path.exists(self.model_path):
             print("Model not found at " + self.model_path)
             return
