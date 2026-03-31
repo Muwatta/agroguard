@@ -92,7 +92,16 @@ def index():
     active_alerts = len([e for e in events if e[1] in critical_pests and e[2] >= 0.80])
 
     # AI model status from classifier
-    model_status = "Active" if get_classifier().interpreter is not None else "Fallback"
+    classifier = get_classifier()
+    if classifier.interpreter is None:
+        model_status = "Fallback"
+    else:
+        expected_cls = len(classifier.class_names) if classifier.class_names else 0
+        output_dim = classifier.model_output_dim if hasattr(classifier, 'model_output_dim') else None
+        if output_dim is not None and expected_cls != output_dim:
+            model_status = f"Active (mismatch: output {output_dim} vs classes {expected_cls})"
+        else:
+            model_status = f"Active ({expected_cls} classes, output {output_dim})"
 
     # Camera status
     camera_status = "Online" if camera.camera and camera.camera.isOpened() else "Offline"

@@ -4,6 +4,7 @@ AgroGuard AI - Optimized TFLite Classifier with Confidence Threshold
 """
 
 import os
+import json
 import numpy as np
 import cv2
 
@@ -25,9 +26,10 @@ class PestClassifier:
         self.confidence_threshold = CONF_THRESHOLD if confidence_threshold is None else confidence_threshold
         self.interpreter = None
         self.input_shape = (224, 224)
-        # Ordered class names including no-pest class
+        # Ordered class names including no-pest class (fallback)
         self.class_names = ['armyworm', 'beetle', 'crow', 'grasshopper', 'weevil', 'none']
         self.floating_model = False
+        self.model_output_dim = None
 
         self._load_model()
     
@@ -40,7 +42,26 @@ class PestClassifier:
         if not os.path.exists(self.model_path):
             print("Model not found at " + self.model_path)
             return
-        
+
+        # Load class metadata if available
+        class_names_path = os.path.join(os.path.dirname(self.model_path), 'class_names.json')
+        if os.path.exists(class_names_path):
+            try:
+                with open(class_names_path, 'r') as f:
+                    loaded_names = json.load(f)
+                if isinstance(loaded_names, list) and loaded_names:
+                    self.class_names = loaded_names
+                    print(f"Loaded class names from {class_names_path}: {self.class_names}")
+                elif isinstance(loaded_names, dict):
+                    # backward-compatible mapping class->index
+                    ordered = [None] * len(loaded_names)
+                    for k, v in loaded_names.items():
+                        ordered[v] = k
+                    self.class_names = ordered
+                    print(f"Loaded class names from {class_names_path} (mapped): {self.class_names}")
+            except Exception as e:
+                print(f"Warning: could not read class names file: {e}")
+
         try:
             self.interpreter = Interpreter(model_path=self.model_path)
             self.interpreter.allocate_tensors()
@@ -52,8 +73,13 @@ class PestClassifier:
             height = self.input_details[0]['shape'][1]
             width = self.input_details[0]['shape'][2]
             self.input_shape = (height, width)
-            
+
+            self.model_output_dim = self.output_details[0]['shape'][-1]
+            if self.model_output_dim != len(self.class_names):
+                print(f"Warning: model output dim ({self.model_output_dim}) != class_names len ({len(self.class_names)}).")
+
             print("Model loaded: " + str(self.input_shape))
+            print("Model output dim: " + str(self.model_output_dim))
             print("Confidence threshold: " + str(self.confidence_threshold))
             print("Classes: " + str(self.class_names))
             

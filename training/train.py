@@ -46,7 +46,10 @@ def train():
     x = GlobalAveragePooling2D()(x)
     x = Dropout(0.5)(x)
     x = Dense(128, activation='relu')(x)
-    predictions = Dense(5, activation='softmax')(x)
+
+    num_classes = len(train_gen.class_indices)
+    print(f"Training on {num_classes} classes: {train_gen.class_indices}")
+    predictions = Dense(num_classes, activation='softmax')(x)
     
     model = Model(inputs=base.input, outputs=predictions)
     model.compile(optimizer=Adam(0.001), loss='categorical_crossentropy', metrics=['accuracy'])
@@ -59,6 +62,16 @@ def train():
     
     # Save
     model.save('agroguard_pest_model.h5')
+
+    # Persist class mapping for inference pipeline
+    import json
+    class_names = [None] * num_classes
+    for name, idx in train_gen.class_indices.items():
+        class_names[idx] = name
+    os.makedirs('../model', exist_ok=True)
+    with open('../model/class_names.json', 'w') as f:
+        json.dump(class_names, f, indent=2)
+    print(f"Saved class names to ../model/class_names.json: {class_names}")
     
     # Convert to TFLite
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
