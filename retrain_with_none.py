@@ -17,7 +17,7 @@ train_datagen = ImageDataGenerator(
 )
 
 train_gen = train_datagen.flow_from_directory(
-    'dataset_augmented',  # Now has 6 folders
+    'dataset_new',  # Now has 6 folders
     target_size=(224, 224),
     batch_size=16,
     class_mode='categorical',
@@ -25,7 +25,7 @@ train_gen = train_datagen.flow_from_directory(
 )
 
 val_gen = train_datagen.flow_from_directory(
-    'dataset_augmented',
+    'dataset_new',
     target_size=(224, 224),
     batch_size=16,
     class_mode='categorical',
@@ -40,7 +40,7 @@ x = base.output
 x = GlobalAveragePooling2D()(x)
 x = Dropout(0.5)(x)
 x = Dense(128, activation='relu')(x)
-predictions = Dense(6, activation='softmax')(x)  # 6 classes now
+predictions = Dense(5, activation='softmax')(x)
 
 model = Model(inputs=base.input, outputs=predictions)
 model.compile(optimizer=Adam(0.001), loss='categorical_crossentropy', metrics=['accuracy'])
