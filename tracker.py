@@ -1,25 +1,40 @@
+# tracker.py
 import time
+from collections import defaultdict
+from datetime import datetime, timedelta
 from config import VISIT_WINDOW_SEC, VISIT_THRESHOLD
 
-# Store visit timestamps
-visits = {}
+# Store visit timestamps for each pest
+pest_visits = defaultdict(list)
 
-def register_visit(pest):
+def register_visit(pest_name):
     """
-    Register a pest visit and return True if it's persistent
+    Register a pest detection and check if it's persistent enough.
+    Returns True if the pest should be alerted, False otherwise.
     """
-    now = time.time()
+    current_time = time.time()
     
-    if pest not in visits:
-        visits[pest] = []
+    # Add current visit
+    pest_visits[pest_name].append(current_time)
     
-    # Add current timestamp
-    visits[pest].append(now)
+    # Clean old visits outside the time window
+    cutoff = current_time - VISIT_WINDOW_SEC
+    pest_visits[pest_name] = [t for t in pest_visits[pest_name] if t > cutoff]
     
-    # Remove old visits outside window
-    window = VISIT_WINDOW_SEC
-    visits[pest] = [t for t in visits[pest] if now - t < window]
+    # Check if we have enough visits in the window
+    visit_count = len(pest_visits[pest_name])
     
-    # Return True if persistent
-    threshold = VISIT_THRESHOLD
-    return len(visits[pest]) >= threshold
+    print(f"Pest {pest_name} visit count in last {VISIT_WINDOW_SEC}s: {visit_count}/{VISIT_THRESHOLD}")
+    
+    return visit_count >= VISIT_THRESHOLD
+
+def clear_visits(pest_name=None):
+    """Clear visit history for a specific pest or all pests"""
+    if pest_name:
+        pest_visits[pest_name] = []
+    else:
+        pest_visits.clear()
+
+def get_visit_count(pest_name):
+    """Get current visit count for a pest"""
+    return len(pest_visits[pest_name])
