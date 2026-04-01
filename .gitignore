@@ -1,8 +1,30 @@
+# AgroGuard .gitignore
+
+# Environment — NEVER commit
+.env
+
+# Python
 __pycache__/
 *.pyc
-venv
-.env
-env
-.venv
-static/captures/
-events.json
+*.pyo
+venv/
+.venv/
+*.egg-info/
+
+# Dataset (too large for git — use Git LFS or store separately)
+dataset_new/
+dataset/
+
+# Model (large binary — store on Pi directly or use Git LFS)
+*.tflite
+*.h5
+*.pb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arduino build artefacts
+*.elf
+*.hex
+build/

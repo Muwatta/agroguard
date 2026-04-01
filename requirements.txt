@@ -1,6 +1,13 @@
+# Raspberry Pi requirements
+# pip3 install -r requirements_pi.txt
+
+
 flask>=3.1.0
 opencv-python>=4.13
 tflite-runtime>=2.14
 numpy>=1.23
 pyserial>=3.6
 RPi.GPIO>=0.7.1
+
+# tflite-runtime — install separately:
+# pip3 install tflite-runtime --extra-index-url https://google-coral.github.io/py-repo/
