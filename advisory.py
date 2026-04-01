@@ -1,10 +1,10 @@
 def get_advice(pest):
-    """Get advice for detected pest"""
+    """Get advice for detected pest based on new 5-class model"""
     advice_map = {
-        "bird": "Install bird netting or reflective tape to deter birds.",
         "armyworm": "Apply biological pesticides like Bt or neem oil immediately.",
-        "beetle": "Use pheromone traps or hand-pick beetles in early morning.",
-        "weevil": "Apply diatomaceous earth around plant bases.",
-        "grasshopper": "Use biological control with Nosema locustae or neem oil."
+        "aphid": "Spray insecticidal soap or neem oil; encourage ladybugs for natural control.",
+        "mealybug": "Remove infested plant parts and apply neem oil or horticultural oil.",
+        "stem_borer": "Use pheromone traps, and remove and destroy affected stems.",
+        "weevil": "Apply diatomaceous earth around plant bases and remove affected plants."
     }
     return advice_map.get(pest, "Consult agricultural extension for this pest.")
