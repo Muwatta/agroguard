@@ -28,3 +28,11 @@ Thumbs.db
 *.elf
 *.hex
 build/
+
+
+__pycache__/
+*.pyc
+.DS_Store
+*.log
+static/captures/*.jpg
+events.json

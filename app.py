@@ -1,4 +1,3 @@
-# At the top of app.py, add/verify these imports
 import cv2
 import time
 import traceback
@@ -53,19 +52,11 @@ def contains_face(frame):
         if cascade.empty():
             return False
         
-        # Convert to grayscale for face detection
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        
-        # Detect faces
-        faces = cascade.detectMultiScale(
-            gray, 
-            scaleFactor=1.1, 
-            minNeighbors=5, 
-            minSize=(50, 50)
-        )
+        faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(50, 50))
         
         if len(faces) > 0:
-            print(f"👤 Detected {len(faces)} face(s) - skipping pest classification")
+            print(f"��� Detected {len(faces)} face(s) - skipping pest classification")
             return True
         return False
     except Exception as e:
@@ -77,65 +68,54 @@ def agroguard_loop():
     global last_sprinkler_time
     
     try:
-        # Call detect_motion with camera object
         frame, motion = detect_motion(camera)
         
         if frame is None:
-            # print("Warning: No frame received from camera")
             return
             
         if not motion:
             return
             
-        # Check if the motion is caused by a human face
         if contains_face(frame):
-            print("🚫 Motion detected but contains human face - ignoring")
+            print("��� Motion detected but contains human face - ignoring")
             return
 
-        # Save captured frame
         img_path, ts = save_capture(frame)
         print(f"Captured: {os.path.basename(img_path)}")
 
-        # Classify the pest
         pest, conf = classify(img_path)
         print(f"Classified: {pest} ({conf:.2f})")
 
         from config import CONF_THRESHOLD
 
-        # Skip unidentified, none class, or low confidence detections
         if pest == 'unidentified' or pest == 'none' or conf < CONF_THRESHOLD:
             if pest == 'none':
-                print(f"🚫 Classified as 'none' (background/no pest)")
+                print(f"��� Classified as 'none' (background/no pest)")
             else:
                 print(f"Skipping: pest={pest}, confidence={conf:.2f}")
             return
 
-        # Require persistence to reduce transient false positives
         persistent = register_visit(pest)
         if not persistent:
             print(f"Pest {pest} not persistent enough, skipping")
             return
 
-        # Get advice and log event
         advice = get_advice(pest)
         log_event(ts, pest, conf, img_path, advice)
         
-        # Trigger hardware alerts
         hardware.alert_buzzer(1)
         
-        # Critical pest response with cooldown
         critical_pests = ["armyworm", "aphid", "mealybugs", "stem_borers", "weevil"]
         if pest in critical_pests and conf > 0.8:
             print(f"⚠️ Critical pest detected - activating defenses!")
             
-            # Check cooldown to prevent constant sprinkling
             current_time = datetime.now()
             if last_sprinkler_time is None or (current_time - last_sprinkler_time).seconds > SPRINKLER_COOLDOWN:
                 hardware.sprinkler_on(10)
                 if arduino.connected:
                     arduino.sprinkler_on(10)
                 last_sprinkler_time = current_time
-                print(f"💦 Sprinkler activated (cooldown: {SPRINKLER_COOLDOWN}s)")
+                print(f"��� Sprinkler activated (cooldown: {SPRINKLER_COOLDOWN}s)")
             else:
                 seconds_remaining = SPRINKLER_COOLDOWN - (current_time - last_sprinkler_time).seconds
                 print(f"⏱️ Sprinkler in cooldown ({seconds_remaining}s remaining)")
@@ -146,21 +126,159 @@ def agroguard_loop():
         print(f"Error in detection loop: {e}")
         traceback.print_exc()
 
-# ... rest of your routes ...
+# Template Filters
+@app.template_filter('datetime')
+def format_datetime(timestamp):
+    return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
+@app.context_processor
+def inject_globals():
+    from config import CAMERA_URL, CONF_THRESHOLD
+    return {
+        'config': {'CAMERA_URL': CAMERA_URL, 'CONF_THRESHOLD': CONF_THRESHOLD},
+        'platform': platform.system(),
+        'hardware_mode': hardware.simulation_mode
+    }
+
+# Web Routes
+@app.route('/')
+def index():
+    try:
+        events = get_events()
+        total = len(events)
+        unique = len(set(e[1] for e in events))
+        pest_counts = Counter(e[1] for e in events)
+        today = datetime.now().date()
+        captures_today = len([e for e in events if datetime.fromtimestamp(e[0]).date() == today])
+
+        critical_pests = {"armyworm", "aphid", "mealybugs", "stem_borers", "weevil"}
+        active_alerts = len([e for e in events if e[1] in critical_pests and e[2] >= 0.80])
+        
+        classifier = get_classifier()
+        if classifier.interpreter is None:
+            model_status = "Fallback"
+        else:
+            expected_cls = len(classifier.class_names) if classifier.class_names else 0
+            model_status = f"Active ({expected_cls} classes)"
+
+        camera_status = "Online" if camera.camera and camera.camera.isOpened() else "Offline"
+
+        return render_template("index.html",
+                             events=events[:10],
+                             total_events=total,
+                             unique_pests=unique,
+                             pest_labels=list(pest_counts.keys()),
+                             pest_counts=list(pest_counts.values()),
+                             last_alert_time=format_datetime(events[0][0]) if events else "None",
+                             captures_today=captures_today,
+                             total_alerts=active_alerts,
+                             ai_model_status=model_status,
+                             camera_status=camera_status)
+    except Exception as e:
+        print(f"Error in index route: {e}")
+        traceback.print_exc()
+        return render_template("index.html", error=str(e)), 500
+
+@app.route('/live')
+def live_feed():
+    return render_template("live.html")
+
+@app.route('/analytics')
+def analytics():
+    try:
+        events = get_events()
+        hours = [datetime.fromtimestamp(e[0]).hour for e in events]
+        hourly_counts = Counter(hours)
+        confs = [e[2] for e in events if events]
+        avg_conf = sum(confs)/len(confs) if confs else 0
+        
+        return render_template("analytics.html",
+                             events=events,
+                             hourly_counts=hourly_counts,
+                             avg_confidence=avg_conf)
+    except Exception as e:
+        print(f"Error in analytics route: {e}")
+        traceback.print_exc()
+        return render_template("analytics.html", error=str(e)), 500
+
+@app.route('/settings')
+def settings():
+    return render_template("settings.html")
+
+@app.route('/hardware')
+def hardware_status():
+    return render_template("hardware.html",
+                         status=hardware.get_status(),
+                         arduino_connected=arduino.connected)
+
+@app.route('/video_feed')
+def video_feed():
+    return Response(gen_frames(camera),
+                    mimetype='multipart/x-mixed-replace; boundary=frame')
+
+# API Routes
+@app.route('/api/events')
+def api_events():
+    try:
+        return jsonify(get_events())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/stats')
+def api_stats():
+    try:
+        events = get_events()
+        return jsonify({
+            "total": len(events),
+            "unique_pests": len(set(e[1] for e in events)),
+            "last_alert": events[0][0] if events else None,
+            "hardware": hardware.get_status(),
+            "arduino": arduino.get_sensor_data() if arduino.connected else None
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sprinkler', methods=['POST'])
+def api_sprinkler():
+    try:
+        data = request.get_json() or {}
+        duration = data.get('duration', 10)
+        hardware.sprinkler_on(duration)
+        return jsonify({"status": "success", "duration": duration})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/buzzer', methods=['POST'])
+def api_buzzer():
+    try:
+        hardware.alert_buzzer(2)
+        return jsonify({"status": "success"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/sensors')
+def api_sensors():
+    try:
+        return jsonify({
+            "hardware": hardware.get_status(),
+            "arduino": arduino.get_sensor_data() if arduino.connected else None
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Main Entry Point
 if __name__ == "__main__":
     def detection_thread():
         print("Detection loop started")
         while True:
             try:
                 agroguard_loop()
-                time.sleep(1)  # Wait 1 second between detections
+                time.sleep(1)
             except Exception as e:
                 print(f"Error in detection thread: {e}")
                 traceback.print_exc()
                 time.sleep(2)
     
-    # Start detection thread
     threading.Thread(target=detection_thread, daemon=True).start()
     print("Server starting on http://0.0.0.0:5000")
     app.run(host="0.0.0.0", port=5000, debug=True, use_reloader=False)
