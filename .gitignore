@@ -9,9 +9,13 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Model files (large)
+# Large model files (don't commit to Git)
 model/*.h5
 model/*.tflite
+
+# Dataset (too large for Git)
+dataset_new/
+dataset_augmented/
 
 # Logs and captures
 logs/
@@ -31,9 +35,6 @@ Thumbs.db
 # Environment variables
 .env
 
-# Training data (optional - uncomment if you want to exclude)
-# dataset_new/
-
 # Temporary files
 *.log
 *.tmp
@@ -43,3 +44,8 @@ collect_*.py
 download_*.py
 augment_*.py
 quick_*.py
+retrain_*.py
+
+# Test folders
+test_captures/
+demo_images/
