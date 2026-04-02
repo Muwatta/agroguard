@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""View and analyze detection logs"""
+# -*- coding: utf-8 -*-
 import json
 import os
 import sys
@@ -15,40 +15,40 @@ EVENTS_FILE = "logs/events.json"
 def view_recent(limit=10):
     """View recent detections"""
     if not os.path.exists(EVENTS_FILE):
-        print("í³­ No events logged yet")
+        print("No events logged yet")
         return
     
     with open(EVENTS_FILE, 'r') as f:
         events = json.load(f)
     
     if not events:
-        print("í³­ No events found")
+        print("No events found")
         return
     
-    print(f"\n{'='*70}")
-    print(f"í³Š RECENT PEST DETECTIONS (Last {min(limit, len(events))} of {len(events)} total)")
-    print(f"{'='*70}\n")
+    print("\n" + "="*70)
+    print(f"RECENT PEST DETECTIONS (Last {min(limit, len(events))} of {len(events)} total)")
+    print("="*70 + "\n")
     
     for i, event in enumerate(events[:limit]):
         date = datetime.fromtimestamp(event['timestamp']).strftime("%Y-%m-%d %H:%M:%S")
         confidence_pct = event['confidence'] * 100
         print(f"{i+1}. [{date}]")
-        print(f"   í°› Pest: {event['pest'].upper()} ({confidence_pct:.1f}% confidence)")
-        print(f"   í³¸ Image: {event['image']}")
-        print(f"   í²¡ Advice: {event['advice'][:80]}...")
+        print(f"   Pest: {event['pest'].upper()} ({confidence_pct:.1f}% confidence)")
+        print(f"   Image: {event['image']}")
+        print(f"   Advice: {event['advice'][:80]}...")
         print()
 
 def show_stats():
     """Show statistics"""
     if not os.path.exists(EVENTS_FILE):
-        print("í³­ No events logged yet")
+        print("No events logged yet")
         return
     
     with open(EVENTS_FILE, 'r') as f:
         events = json.load(f)
     
     if not events:
-        print("í³­ No events found")
+        print("No events found")
         return
     
     # Count by pest
@@ -62,29 +62,33 @@ def show_stats():
     first_detection = datetime.fromtimestamp(min(timestamps))
     last_detection = datetime.fromtimestamp(max(timestamps))
     
-    print(f"\n{'='*70}")
-    print(f"í³ˆ DETECTION STATISTICS")
-    print(f"{'='*70}")
-    print(f"\ní³Š Summary:")
+    print("\n" + "="*70)
+    print("DETECTION STATISTICS")
+    print("="*70)
+    print(f"\nSummary:")
     print(f"   Total detections: {len(events)}")
     print(f"   Average confidence: {avg_confidence:.1f}%")
     print(f"   First detection: {first_detection}")
     print(f"   Last detection: {last_detection}")
-    print(f"   Detection period: {(last_detection - first_detection).days} days")
+    days = (last_detection - first_detection).days
+    print(f"   Detection period: {days} days")
     
-    print(f"\ní°› Pest Breakdown:")
+    print(f"\nPest Breakdown:")
     for pest, count in pest_counts.most_common():
-        print(f"   {pest}: {count} detection{'s' if count > 1 else ''}")
+        print(f"   {pest}: {count} detection(s)")
 
 def clear_logs():
     """Clear all logs (with confirmation)"""
-    confirm = input("âš ï¸ Are you sure you want to delete all logs? (yes/no): ")
+    confirm = input("Are you sure you want to delete all logs? (yes/no): ")
     if confirm.lower() == 'yes':
         if os.path.exists(EVENTS_FILE):
             os.remove(EVENTS_FILE)
-            print("âœ… All logs cleared")
+            print("All logs cleared")
+            # Recreate empty events file
+            with open(EVENTS_FILE, 'w') as f:
+                json.dump([], f)
         else:
-            print("í³­ No logs to clear")
+            print("No logs to clear")
 
 if __name__ == "__main__":
     if len(sys.argv) > 1:

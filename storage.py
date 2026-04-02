@@ -1,4 +1,3 @@
-# storage.py
 import json
 import os
 from datetime import datetime
@@ -41,10 +40,10 @@ def log_event(timestamp, pest, confidence, image_path, advice):
         with open(EVENTS_FILE, 'w') as f:
             json.dump(events, f, indent=2)
             
-        print(f"📝 Logged event: {pest} at {event['datetime']}")
+        print(f"Logged event: {pest} at {event['datetime']}")
         
     except Exception as e:
-        print(f"❌ Error logging event: {e}")
+        print(f"Error logging event: {e}")
 
 def get_events(limit=None):
     """Get all events"""
@@ -59,7 +58,7 @@ def get_events(limit=None):
                 return events
         return []
     except Exception as e:
-        print(f"❌ Error reading events: {e}")
+        print(f"Error reading events: {e}")
         return []
 
 def clear_events():
@@ -69,6 +68,6 @@ def clear_events():
     try:
         if os.path.exists(EVENTS_FILE):
             os.remove(EVENTS_FILE)
-            print("✅ All events cleared")
+            print("All events cleared")
     except Exception as e:
-        print(f"❌ Error clearing events: {e}")
+        print(f"Error clearing events: {e}")
