@@ -147,3 +147,24 @@ Find Pi's IP with: `hostname -I`
 2. Upload `dataset_new/` to Google Drive
 3. Train MobileNetV2 on Colab (free GPU), export to `.tflite`
 4. Copy `pest_model.tflite` to the Pi's `agroguard/` folder
+## Model Files
+
+The trained model files are not included in this repository due to size limitations. 
+To run the application, you need:
+
+1. **Trained model files** (pest_model.tflite and pest_model.h5) in the `model/` folder
+2. **Dataset** in the `dataset_new/` folder
+
+### Quick Start
+
+1. Clone the repository
+2. Install dependencies: `pip install -r requirements.txt`
+3. Place the trained model files in `model/` folder
+4. Run the application: `python app.py`
+
+### Model Performance
+
+- Validation accuracy: 87.6%
+- Detection confidence: 98-100% for all 6 pest classes
+- Classes: aphid, armyworm, mealybugs, stem_borers, weevil, none
+
