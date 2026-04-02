@@ -49,3 +49,7 @@ retrain_*.py
 # Test folders
 test_captures/
 demo_images/
+
+# Model files (too large for GitHub)
+model/*.tflite
+model/*.h5
