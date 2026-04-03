@@ -1,119 +1,103 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """
-Hardware Controller - Works on Windows (simulation) and Raspberry Pi (real GPIO)
+Real hardware controller for Raspberry Pi/Arduino
 """
 
 import time
-import threading
 import platform
 
-# Check if running on Raspberry Pi
-IS_RASPBERRY_PI = platform.machine().startswith('arm') or platform.system() == 'Linux'
-
-# Try to import GPIO - fall back to simulation if not available
+# Try to import RPi.GPIO (for Raspberry Pi)
 try:
-    if IS_RASPBERRY_PI:
-        import RPi.GPIO as GPIO
-        GPIO_AVAILABLE = True
-        print("‚úÖ Raspberry Pi GPIO detected")
-    else:
-        GPIO_AVAILABLE = False
-        print("‚ÑπÔ∏è Running on Windows - GPIO simulation mode")
+    import RPi.GPIO as GPIO
+    IS_RASPBERRY_PI = True
+    print("‚úÖ Raspberry Pi GPIO detected")
 except ImportError:
-    GPIO_AVAILABLE = False
-    print("‚ÑπÔ∏è GPIO not available - simulation mode")
+    IS_RASPBERRY_PI = False
+    print("‚ö†Ô∏è Not running on Raspberry Pi - using simulation")
 
 class HardwareController:
     def __init__(self):
-        self.relay_pin = 17
-        self.buzzer_pin = 27
-        self.sensor_pin = 22
+        self.simulation_mode = not IS_RASPBERRY_PI
         
-        self.sprinkler_status = False
-        self.simulation_mode = not GPIO_AVAILABLE
+        # Pin definitions (adjust as needed)
+        self.BUZZER_PIN = 17
+        self.SPRINKLER_PIN = 18
         
-        if GPIO_AVAILABLE:
+        if not self.simulation_mode:
+            # Setup GPIO
             GPIO.setmode(GPIO.BCM)
-            GPIO.setwarnings(False)
+            GPIO.setup(self.BUZZER_PIN, GPIO.OUT)
+            GPIO.setup(self.SPRINKLER_PIN, GPIO.OUT)
             
-            GPIO.setup(self.relay_pin, GPIO.OUT)
-            GPIO.setup(self.buzzer_pin, GPIO.OUT)
-            GPIO.setup(self.sensor_pin, GPIO.IN)
+            # Initial state OFF
+            GPIO.output(self.BUZZER_PIN, GPIO.LOW)
+            GPIO.output(self.SPRINKLER_PIN, GPIO.LOW)
             
-            GPIO.output(self.relay_pin, GPIO.LOW)
-            GPIO.output(self.buzzer_pin, GPIO.LOW)
-            
-            print("üîß Hardware controller initialized (REAL GPIO)")
+            print(f"Ì¥ß Real hardware initialized (GPIO mode)")
+            print(f"   Buzzer: GPIO{self.BUZZER_PIN}")
+            print(f"   Sprinkler: GPIO{self.SPRINKLER_PIN}")
         else:
-            print("üîß Hardware controller initialized (SIMULATION MODE)")
+            print(f"Ì¥ß Hardware controller initialized (SIMULATION MODE)")
+    
+    def alert_buzzer(self, duration=1):
+        """Turn on buzzer for specified duration"""
+        if not self.simulation_mode:
+            print(f"Ì¥î BUZZER ON (GPIO{self.BUZZER_PIN})")
+            GPIO.output(self.BUZZER_PIN, GPIO.HIGH)
+            time.sleep(duration)
+            GPIO.output(self.BUZZER_PIN, GPIO.LOW)
+            print(f"Ì¥î BUZZER OFF")
+        else:
+            print(f"Ì¥î BUZZER ({duration}s) - SIMULATED")
+        
+        return True
     
     def sprinkler_on(self, duration=10):
-        """Turn on sprinkler/pump"""
-        if self.sprinkler_status:
-            return  # Already running
-            
-        self.sprinkler_status = True
-        print(f"üöø SPRINKLER ON ({duration}s) - {'REAL' if GPIO_AVAILABLE else 'SIMULATED'}")
-        
-        if GPIO_AVAILABLE:
-            GPIO.output(self.relay_pin, GPIO.HIGH)
-        
-        # Run in thread so it doesn't block
-        def auto_off():
+        """Turn on sprinkler for specified duration"""
+        if not self.simulation_mode:
+            print(f"Ì∫ø SPRINKLER ON (GPIO{self.SPRINKLER_PIN})")
+            GPIO.output(self.SPRINKLER_PIN, GPIO.HIGH)
             time.sleep(duration)
-            self.sprinkler_off()
+            GPIO.output(self.SPRINKLER_PIN, GPIO.LOW)
+            print(f"Ì∫ø SPRINKLER OFF")
+        else:
+            print(f"Ì∫ø SPRINKLER ON ({duration}s) - SIMULATED")
         
-        threading.Thread(target=auto_off).start()
         return True
     
     def sprinkler_off(self):
-        """Turn off sprinkler"""
-        self.sprinkler_status = False
-        print("üöø SPRINKLER OFF")
-        
-        if GPIO_AVAILABLE:
-            GPIO.output(self.relay_pin, GPIO.LOW)
-        return True
-    
-    def alert_buzzer(self, duration=2):
-        """Sound alert buzzer"""
-        print(f"üîî BUZZER ({duration}s) - {'REAL' if GPIO_AVAILABLE else 'SIMULATED'}")
-        
-        if GPIO_AVAILABLE:
-            GPIO.output(self.buzzer_pin, GPIO.HIGH)
-            time.sleep(duration)
-            GPIO.output(self.buzzer_pin, GPIO.LOW)
+        """Turn off sprinkler immediately"""
+        if not self.simulation_mode:
+            GPIO.output(self.SPRINKLER_PIN, GPIO.LOW)
+            print(f"Ì∫ø SPRINKLER OFF (manual)")
         else:
-            # Windows beep
-            print("\a")  # System beep
-            time.sleep(duration)
+            print(f"Ì∫ø SPRINKLER OFF - SIMULATED")
+        
         return True
-    
-    def read_soil_moisture(self):
-        """Read soil moisture (0-100%)"""
-        if GPIO_AVAILABLE:
-            # Read from analog sensor via ADC or digital
-            value = GPIO.input(self.sensor_pin)
-            return 100 if value else 45  # Example conversion
-        else:
-            # Simulated value
-            import random
-            return random.randint(40, 80)
     
     def get_status(self):
         """Get current hardware status"""
-        return {
-            "sprinkler": self.sprinkler_status,
-            "soil_moisture": self.read_soil_moisture(),
-            "mode": "REAL" if GPIO_AVAILABLE else "SIMULATION",
-            "platform": platform.system()
-        }
+        if not self.simulation_mode:
+            return {
+                "mode": "REAL",
+                "buzzer_pin": self.BUZZER_PIN,
+                "sprinkler_pin": self.SPRINKLER_PIN,
+                "buzzer_state": GPIO.input(self.BUZZER_PIN),
+                "sprinkler_state": GPIO.input(self.SPRINKLER_PIN)
+            }
+        else:
+            return {
+                "mode": "SIMULATION",
+                "buzzer_pin": self.BUZZER_PIN,
+                "sprinkler_pin": self.SPRINKLER_PIN
+            }
     
     def cleanup(self):
-        """Cleanup GPIO"""
-        if GPIO_AVAILABLE:
+        """Cleanup GPIO on exit"""
+        if not self.simulation_mode:
             GPIO.cleanup()
-            print("GPIO cleaned up")
+            print("Ì¥ß GPIO cleaned up")
 
-# Singleton instance
+# Create global instance
 hardware = HardwareController()
