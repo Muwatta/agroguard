@@ -40,9 +40,9 @@ def get_face_cascade():
         cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
         face_cascade = cv2.CascadeClassifier(cascade_path)
         if face_cascade.empty():
-            print("⚠️ Warning: Could not load face cascade")
+            print("Warning: Could not load face cascade")
         else:
-            print("✅ Face cascade loaded")
+            print("Face cascade loaded")
     return face_cascade
 
 def contains_face(frame):
@@ -56,11 +56,11 @@ def contains_face(frame):
         faces = cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(50, 50))
         
         if len(faces) > 0:
-            print(f"��� Detected {len(faces)} face(s) - skipping pest classification")
+            print(f"Face detected - skipping frame")
             return True
         return False
     except Exception as e:
-        print(f"⚠️ Face detection error: {e}")
+        print(f"Face detection error: {e}")
         return False
 
 def agroguard_loop():
@@ -76,8 +76,8 @@ def agroguard_loop():
         if not motion:
             return
             
+        # Skip if face detected
         if contains_face(frame):
-            print("��� Motion detected but contains human face - ignoring")
             return
 
         img_path, ts = save_capture(frame)
@@ -88,11 +88,14 @@ def agroguard_loop():
 
         from config import CONF_THRESHOLD
 
-        if pest == 'unidentified' or pest == 'none' or conf < CONF_THRESHOLD:
-            if pest == 'none':
-                print(f"��� Classified as 'none' (background/no pest)")
-            else:
-                print(f"Skipping: pest={pest}, confidence={conf:.2f}")
+        # Skip none class (background/face)
+        if pest == 'none':
+            print(f"Classified as 'none' (background) - skipping")
+            return
+            
+        # Skip unidentified or low confidence
+        if pest == 'unidentified' or conf < CONF_THRESHOLD:
+            print(f"Skipping: pest={pest}, confidence={conf:.2f}")
             return
 
         persistent = register_visit(pest)
@@ -107,7 +110,7 @@ def agroguard_loop():
         
         critical_pests = ["armyworm", "aphid", "mealybugs", "stem_borers", "weevil"]
         if pest in critical_pests and conf > 0.8:
-            print(f"⚠️ Critical pest detected - activating defenses!")
+            print(f"Critical pest detected - activating defenses!")
             
             current_time = datetime.now()
             if last_sprinkler_time is None or (current_time - last_sprinkler_time).seconds > SPRINKLER_COOLDOWN:
@@ -115,12 +118,12 @@ def agroguard_loop():
                 if arduino.connected:
                     arduino.sprinkler_on(10)
                 last_sprinkler_time = current_time
-                print(f"��� Sprinkler activated (cooldown: {SPRINKLER_COOLDOWN}s)")
+                print(f"Sprinkler activated (cooldown: {SPRINKLER_COOLDOWN}s)")
             else:
                 seconds_remaining = SPRINKLER_COOLDOWN - (current_time - last_sprinkler_time).seconds
-                print(f"⏱️ Sprinkler in cooldown ({seconds_remaining}s remaining)")
+                print(f"Sprinkler in cooldown ({seconds_remaining}s remaining)")
         
-        print(f"✅ ALERT: {pest} detected with {conf:.2f} confidence")
+        print(f"ALERT: {pest} detected with {conf:.2f} confidence")
         
     except Exception as e:
         print(f"Error in detection loop: {e}")
@@ -146,13 +149,27 @@ def index():
     try:
         events = get_events()
         total = len(events)
-        unique = len(set(e[1] for e in events))
-        pest_counts = Counter(e[1] for e in events)
-        today = datetime.now().date()
-        captures_today = len([e for e in events if datetime.fromtimestamp(e[0]).date() == today])
-
+        
+        # Initialize default values
+        unique = 0
+        pest_counts = {}
+        captures_today = 0
+        active_alerts = 0
         critical_pests = {"armyworm", "aphid", "mealybugs", "stem_borers", "weevil"}
-        active_alerts = len([e for e in events if e[1] in critical_pests and e[2] >= 0.80])
+        
+        if events and len(events) > 0:
+            if isinstance(events[0], dict):
+                # New format (dict)
+                unique = len(set(e['pest'] for e in events))
+                pest_counts = Counter(e['pest'] for e in events)
+                captures_today = len([e for e in events if datetime.fromtimestamp(e['timestamp']).date() == datetime.now().date()])
+                active_alerts = len([e for e in events if e['pest'] in critical_pests and e['confidence'] >= 0.80])
+            else:
+                # Old format (tuple)
+                unique = len(set(e[1] for e in events))
+                pest_counts = Counter(e[1] for e in events)
+                captures_today = len([e for e in events if datetime.fromtimestamp(e[0]).date() == datetime.now().date()])
+                active_alerts = len([e for e in events if e[1] in critical_pests and e[2] >= 0.80])
         
         classifier = get_classifier()
         if classifier.interpreter is None:
@@ -162,6 +179,13 @@ def index():
             model_status = f"Active ({expected_cls} classes)"
 
         camera_status = "Online" if camera.camera and camera.camera.isOpened() else "Offline"
+        
+        last_alert = "None"
+        if events:
+            if isinstance(events[0], dict):
+                last_alert = format_datetime(events[0]['timestamp'])
+            else:
+                last_alert = format_datetime(events[0][0])
 
         return render_template("index.html",
                              events=events[:10],
@@ -169,7 +193,7 @@ def index():
                              unique_pests=unique,
                              pest_labels=list(pest_counts.keys()),
                              pest_counts=list(pest_counts.values()),
-                             last_alert_time=format_datetime(events[0][0]) if events else "None",
+                             last_alert_time=last_alert,
                              captures_today=captures_today,
                              total_alerts=active_alerts,
                              ai_model_status=model_status,
@@ -185,12 +209,22 @@ def live_feed():
 
 @app.route('/analytics')
 def analytics():
+    """Analytics dashboard"""
     try:
         events = get_events()
-        hours = [datetime.fromtimestamp(e[0]).hour for e in events]
-        hourly_counts = Counter(hours)
-        confs = [e[2] for e in events if events]
-        avg_conf = sum(confs)/len(confs) if confs else 0
+        hourly_counts = {}
+        avg_conf = 0
+        
+        if events and len(events) > 0:
+            # Handle both dict and tuple formats
+            if isinstance(events[0], dict):
+                hours = [datetime.fromtimestamp(e['timestamp']).hour for e in events]
+                confs = [e['confidence'] for e in events]
+            else:
+                hours = [datetime.fromtimestamp(e[0]).hour for e in events]
+                confs = [e[2] for e in events if events]
+            hourly_counts = Counter(hours)
+            avg_conf = sum(confs)/len(confs) if confs else 0
         
         return render_template("analytics.html",
                              events=events,
@@ -200,7 +234,7 @@ def analytics():
         print(f"Error in analytics route: {e}")
         traceback.print_exc()
         return render_template("analytics.html", error=str(e)), 500
-
+    
 @app.route('/settings')
 def settings():
     return render_template("settings.html")
@@ -228,10 +262,24 @@ def api_events():
 def api_stats():
     try:
         events = get_events()
+        unique_pests = 0
+        if events and len(events) > 0:
+            if isinstance(events[0], dict):
+                unique_pests = len(set(e['pest'] for e in events))
+            else:
+                unique_pests = len(set(e[1] for e in events))
+        
+        last_alert = None
+        if events:
+            if isinstance(events[0], dict):
+                last_alert = events[0]['timestamp']
+            else:
+                last_alert = events[0][0]
+        
         return jsonify({
             "total": len(events),
-            "unique_pests": len(set(e[1] for e in events)),
-            "last_alert": events[0][0] if events else None,
+            "unique_pests": unique_pests,
+            "last_alert": last_alert,
             "hardware": hardware.get_status(),
             "arduino": arduino.get_sensor_data() if arduino.connected else None
         })

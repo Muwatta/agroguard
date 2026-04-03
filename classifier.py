@@ -30,7 +30,7 @@ class PestClassifier:
         else:
             self.class_names = ['aphid', 'armyworm', 'mealybugs', 'none', 'stem_borers', 'weevil']
         
-        print(f"í³‹ Classes: {self.class_names}")
+        print(f"Classes: {self.class_names}")
     
     def preprocess_image(self, image_path):
         img = cv2.imread(image_path)

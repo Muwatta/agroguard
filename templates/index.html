@@ -1,150 +1,65 @@
-{% extends "base.html" %} {% block title %}Dashboard{% endblock %} {% block
-page_title %}Dashboard Overview{% endblock %} {% block content %}
-<div class="row g-4 mb-4">
-  <div class="col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <i class="bi bi-bug"></i>
-      </div>
-      <div class="stat-value">{{ total_events }}</div>
-      <div class="stat-label">Total Detections</div>
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard">
+    <h1>AgroGuard Dashboard</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Detections</h3>
+            <div class="stat-value">{{ total_events }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Unique Pests</h3>
+            <div class="stat-value">{{ unique_pests }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Today's Captures</h3>
+            <div class="stat-value">{{ captures_today }}</div>
+        </div>
+        <div class="stat-card">
+            <h3>Active Alerts</h3>
+            <div class="stat-value">{{ total_alerts }}</div>
+        </div>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #fff3e0; color: #e65100">
-        <i class="bi bi-exclamation-triangle"></i>
-      </div>
-      <div class="stat-value">{{ total_alerts }}</div>
-      <div class="stat-label">Active Alerts</div>
+    
+    <div class="chart-container">
+        <h3>Pest Distribution</h3>
+        <canvas id="pestChart"></canvas>
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #e3f2fd; color: #1565c0">
-        <i class="bi bi-camera"></i>
-      </div>
-      <div class="stat-value">{{ captures_today }}</div>
-      <div class="stat-label">Captures Today</div>
+    
+    <div class="events-list">
+        <h3>Recent Events</h3>
+        {% for event in events %}
+        <div class="event-card 
+            {% if event.confidence and event.confidence > 0.9 %}alert-high
+            {% elif event.confidence and event.confidence > 0.8 %}alert-medium
+            {% else %}alert-low{% endif %}">
+            <div class="event-time">{{ event.datetime if event.datetime else event[0]|datetime }}</div>
+            <div class="event-pest">{{ event.pest if event.pest else event[1] }}</div>
+            <div class="event-confidence">{{ "%.1f"|format((event.confidence if event.confidence else event[2])*100) }}%</div>
+        </div>
+        {% endfor %}
     </div>
-  </div>
-  <div class="col-md-3">
-    <div class="stat-card">
-      <div class="stat-icon" style="background: #f3e5f5; color: #7b1fa2">
-        <i class="bi bi-shield-check"></i>
-      </div>
-      <div class="stat-value">{{ unique_pests }}</div>
-      <div class="stat-label">Pest Types</div>
-    </div>
-  </div>
 </div>
 
-<div class="row">
-  <div class="col-lg-8">
-    <h5 class="mb-3">Recent Activity</h5>
-    {% if events %} {% for event in events[:10] %}
-    <div
-      class="event-card {% if event[2] > 0.9 %}alert-high{% elif event[2] > 0.8 %}alert-medium{% else %}alert-low{% endif %}"
-    >
-      <div class="d-flex justify-content-between align-items-start">
-        <div>
-          <span class="pest-badge">{{ event[1] }}</span>
-          <div class="mt-2 timestamp">
-            <i class="bi bi-clock"></i> {{ event[0]|datetime }}
-          </div>
-        </div>
-        <div class="text-end">
-          <div class="h5 mb-0">{{ "%.0f"|format(event[2]*100) }}%</div>
-          <small class="text-muted">confidence</small>
-        </div>
-      </div>
-      <div class="confidence-bar">
-        <div class="confidence-fill" style="width: {{ event[2]*100 }}%"></div>
-      </div>
-      <div class="advice-box">
-        <i class="bi bi-lightbulb"></i>
-        <strong>Recommendation:</strong> {{ event[4] }}
-      </div>
-    </div>
-    {% endfor %} {% else %}
-    <div class="stat-card text-center text-muted py-5">
-      <i class="bi bi-inbox" style="font-size: 3rem"></i>
-      <p class="mt-3">No events recorded yet</p>
-    </div>
-    {% endif %}
-  </div>
-
-  <div class="col-lg-4">
-    <h5 class="mb-3">Pest Distribution</h5>
-    <div class="stat-card">
-      {% if pest_labels %}
-      <canvas id="pestChart"></canvas>
-      {% else %}
-      <div class="text-center text-muted py-4">No data available</div>
-      {% endif %}
-    </div>
-
-    <h5 class="mt-4 mb-3">System Health</h5>
-    <div class="stat-card">
-      <div class="d-flex justify-content-between mb-2">
-        <span>Camera</span>
-        {% if camera_status == 'Online' %}
-        <span class="text-success"
-          ><i class="bi bi-check-circle"></i> {{ camera_status }}</span
-        >
-        {% else %}
-        <span class="text-danger"
-          ><i class="bi bi-x-circle"></i> {{ camera_status }}</span
-        >
-        {% endif %}
-      </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span>AI Model</span>
-        {% if ai_model_status == 'Active' %}
-        <span class="text-success"
-          ><i class="bi bi-check-circle"></i> {{ ai_model_status }}</span
-        >
-        {% else %}
-        <span class="text-warning"
-          ><i class="bi bi-exclamation-triangle"></i> {{ ai_model_status
-          }}</span
-        >
-        {% endif %}
-      </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span>Storage</span>
-        <span class="text-success"><i class="bi bi-check-circle"></i> OK</span>
-      </div>
-      <div class="d-flex justify-content-between">
-        <span>Last Alert</span>
-        <span class="text-muted">{{ last_alert_time }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-{% endblock %} {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  {% if pest_labels %}
-  const ctx = document.getElementById('pestChart').getContext('2d');
-  new Chart(ctx, {
-      type: 'doughnut',
-      data: {
-          labels: {{ pest_labels|tojson }},
-          datasets: [{
-              data: {{ pest_counts|tojson }},
-              backgroundColor: ['#2e7d32', '#f9a825', '#c62828', '#1565c0', '#7b1fa2']
-          }]
-      },
-      options: {
-          responsive: true,
-          plugins: {
-              legend: {
-                  position: 'bottom'
-              }
-          }
-      }
-  });
-  {% endif %}
+const ctx = document.getElementById('pestChart').getContext('2d');
+const pestLabels = {{ pest_labels|tojson }};
+const pestData = {{ pest_counts|tojson }};
+
+new Chart(ctx, {
+    type: 'pie',
+    data: {
+        labels: pestLabels,
+        datasets: [{
+            data: pestData,
+            backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#ffeaa7', '#dfe6e9']
+        }]
+    }
+});
 </script>
 {% endblock %}

@@ -1,105 +1,97 @@
 {% extends "base.html" %}
 
-{% block title %}Analytics{% endblock %}
-{% block page_title %}Pest Analytics{% endblock %}
+{% block title %}Analytics - AgroGuard{% endblock %}
 
 {% block content %}
-<div class="row g-4">
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h6>Average Confidence</h6>
-            <div class="stat-value">{{ "%.1f"|format(avg_confidence*100) }}%</div>
+<div class="container">
+    <h1>Detection Analytics</h1>
+    
+    {% if error %}
+    <div class="alert alert-danger">
+        Error loading analytics: {{ error }}
+    </div>
+    {% else %}
+    <div class="row">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h3>Total Detections</h3>
+                <div class="stat-value">{{ events|length }}</div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="stat-card">
+                <h3>Average Confidence</h3>
+                <div class="stat-value">{{ "%.1f"|format(avg_confidence|default(0)*100) }}%</div>
+            </div>
         </div>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h6>Peak Activity Hour</h6>
-            <div class="stat-value">{{ hourly_counts.most_common(1)[0][0] if hourly_counts else 'N/A' }}:00</div>
-        </div>
+    
+    <div class="chart-container">
+        <h3>Detections by Hour</h3>
+        <canvas id="hourlyChart"></canvas>
     </div>
-    <div class="col-md-4">
-        <div class="stat-card">
-            <h6>Detection Rate</h6>
-            <div class="stat-value">{{ events|length }}/hr</div>
-        </div>
+    
+    <div class="table-container">
+        <h3>Recent Detections</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Time</th>
+                    <th>Pest</th>
+                    <th>Confidence</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in events[:20] %}
+                <tr>
+                    <td>{{ event.datetime if event.datetime else event.timestamp|datetime }}</td>
+                    <td>{{ event.pest if event.pest else event[1] }}</td>
+                    <td>{{ "%.1f"|format((event.confidence if event.confidence else event[2])*100) }}%</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
+    {% endif %}
 </div>
 
-<div class="row mt-4">
-    <div class="col-lg-6">
-        <div class="stat-card">
-            <h5 class="mb-3">Hourly Activity</h5>
-            {% if hourly_counts %}
-                <canvas id="hourlyChart"></canvas>
-            {% else %}
-                <div class="text-center text-muted py-4">No activity data</div>
-            {% endif %}
-        </div>
-    </div>
-    <div class="col-lg-6">
-        <div class="stat-card">
-            <h5 class="mb-3">Confidence Trend</h5>
-            {% if events|length > 1 %}
-                <canvas id="trendChart"></canvas>
-            {% else %}
-                <div class="text-center text-muted py-4">Need more data for trend</div>
-            {% endif %}
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-{% if hourly_counts %}
-// Hourly activity chart
-const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
-new Chart(hourlyCtx, {
+const ctx = document.getElementById('hourlyChart').getContext('2d');
+const hourlyData = {{ hourly_counts|default({})|tojson }};
+const hours = Object.keys(hourlyData);
+const counts = Object.values(hourlyData);
+
+new Chart(ctx, {
     type: 'bar',
     data: {
-        labels: Array.from({length: 24}, (_, i) => i + ':00'),
+        labels: hours,
         datasets: [{
             label: 'Detections',
-            data: {{ hourly_counts.values()|list|tojson }},
-            backgroundColor: '#2e7d32'
+            data: counts,
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
         }]
     },
     options: {
         responsive: true,
         scales: {
-            y: { beginAtZero: true }
-        }
-    }
-});
-{% endif %}
-
-{% if events|length > 1 %}
-// Confidence trend chart (last 20 events)
-const trendCtx = document.getElementById('trendChart').getContext('2d');
-new Chart(trendCtx, {
-    type: 'line',
-    data: {
-        labels: {{ range(1, [events[:20]|length, 20]|min + 1)|list|tojson }},
-        datasets: [{
-            label: 'Confidence %',
-            data: {{ events[:20]|map(attribute=2)|list|tojson }},
-            borderColor: '#2e7d32',
-            backgroundColor: 'rgba(46, 125, 50, 0.1)',
-            tension: 0.4,
-            fill: true
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: { 
+            y: {
                 beginAtZero: true,
-                max: 1
+                title: {
+                    display: true,
+                    text: 'Number of Detections'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Hour of Day'
+                }
             }
         }
     }
 });
-{% endif %}
 </script>
 {% endblock %}
