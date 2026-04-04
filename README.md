@@ -1,4 +1,3 @@
-cat > README.md << 'EOF'
 # 🌾 AgroGuard - AI-Powered Smart Farming System
 
 > **Real-time pest detection + automated irrigation + live dashboard**  
