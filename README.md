@@ -1,72 +1,138 @@
-# 🌾 AgroGuard - AI-Powered Smart Farming System
 
-> **Real-time pest detection + automated irrigation + live dashboard**  
-> Built for Jos Plateau smart farming | Hackathon Ready 🏆
+# 🌾 AgroGuard - AI Smart Farming System
 
-[![Python](https://img.shields.io/badge/Python-3.11-blue.svg)](https://python.org)
-[![TensorFlow](https://img.shields.io/badge/TensorFlow-Lite-orange.svg)](https://tensorflow.org)
-[![Flask](https://img.shields.io/badge/Flask-2.0-green.svg)](https://flask.palletsprojects.com)
-[![OpenCV](https://img.shields.io/badge/OpenCV-4.8-red.svg)](https://opencv.org)
+> Pest detection + automatic irrigation | Hackathon Ready
 
 ---
 
-## 📋 Table of Contents
+## 🚀 Quick Start (3 steps)
 
-- [Overview](#overview)
-- [Features](#features)
-- [System Architecture](#system-architecture)
-- [Hardware Requirements](#hardware-requirements)
-- [Software Setup](#software-setup)
-- [Installation Guide](#installation-guide)
-- [Running the System](#running-the-system)
-- [API Endpoints](#api-endpoints)
-- [Troubleshooting](#troubleshooting)
-- [Hackathon Demo Script](#hackathon-demo-script)
-- [Future Improvements](#future-improvements)
+```bash
+# 1. Install dependencies
+pip install -r requirements.txt
 
----
+# 2. Run the system
+python app.py
 
-## 🎯 Overview
-
-**AgroGuard** is an intelligent farming system that combines:
-- **AI-powered pest detection** (6 pest types with 98% accuracy)
-- **Automated irrigation** (soil moisture-based)
-- **Real-time monitoring dashboard**
-- **Hardware integration** (buzzer, sprinkler, sensors)
-
-### Problem Solved
-Farmers on Jos Plateau lose 30-40% of crops to undetected pests and inefficient watering. AgroGuard provides early detection and automated response.
+# 3. Open browser
+http://127.0.0.1:5000/live
+```
 
 ---
 
-## ✨ Features
+## 📋 What It Does
 
-### 🤖 AI Pest Detection
-| Pest | Accuracy |
-|------|----------|
-| Armyworm | 98.3% |
-| Aphid | 99.8% |
-| Mealybugs | 99.9% |
-| Stem Borers | 98.4% |
-| Weevil | 100% |
-| Background | 100% |
+| Feature | Description |
+|---------|-------------|
+| **Pest Detection** | AI identifies 6 pests (98-100% accuracy) |
+| **Face Detection** | Ignores humans - no false alarms |
+| **Auto Irrigation** | Waters plants when soil is dry |
+| **Live Dashboard** | Web interface shows everything |
 
-### 🌊 Smart Irrigation
-- Soil moisture monitoring
-- Automatic pump control
-- Adjustable thresholds
-
-### 📊 Web Dashboard
-- Live camera feed
-- Real-time detections
-- Analytics & charts
-- Hardware controls
-
-### 🔔 Alerts
-- Buzzer sound on pest detection
-- Sprinkler activation
-- Event logging
+**Detects:** Armyworm, Aphid, Mealybugs, Stem Borers, Weevil
 
 ---
 
-## 🏗️ System Architecture
+## 🔧 Hardware (Optional)
+
+| Component | Cost |
+|-----------|------|
+| Arduino Uno | $20 |
+| Soil Moisture Sensor | $10 |
+| 5V Relay | $8 |
+| Water Pump | $15 |
+| USB Webcam | $25 |
+| **Total** | **~$78** |
+
+**Wiring:** Arduino A0→Sensor, D7→Relay, Relay→Pump
+
+---
+
+## 💻 Setup
+
+```bash
+# Clone
+git clone https://github.com/muwatta/agroguard.git
+cd agroguard
+
+# Python environment
+python -m venv venv
+venv\Scripts\activate
+pip install -r requirements.txt
+
+# Run
+python app.py
+```
+
+**Arduino:** Upload `agroguard_irrigation.ino` (once only)
+
+---
+
+## 🌐 Web Pages
+
+| Page | URL |
+|------|-----|
+| Live Feed | `/live` |
+| Dashboard | `/` |
+| Analytics | `/analytics` |
+| Hardware | `/hardware` |
+
+---
+
+## 🔍 Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| Camera not found | Check USB |
+| Arduino not connected | Check COM port |
+| Access denied | Close Arduino IDE |
+| Model error | Check `model/` folder |
+
+**Find COM port:**
+```bash
+python -c "import serial.tools.list_ports; [print(p.device) for p in serial.tools.list_ports.comports()]"
+```
+
+---
+
+## 🎤 Demo (2 minutes)
+
+1. Start: `python app.py`
+2. Show pest to camera
+3. Watch detection + buzzer + sprinkler
+
+**Say:** *"AI detects pests in real-time and waters automatically."*
+
+---
+
+## 📁 Files
+
+| File | Purpose |
+|------|---------|
+| `app.py` | Main app |
+| `classifier.py` | AI model |
+| `vision.py` | Motion detection |
+| `hardware_controller.py` | Hardware control |
+| `arduino_controller.py` | Arduino communication |
+| `agroguard_irrigation.ino` | Arduino code |
+
+---
+
+## ⚡ Commands
+
+```bash
+python app.py                    # Start system
+python arduino_controller.py     # Test Arduino
+cat logs/events.json             # View detections
+```
+
+---
+
+## ✅ Checklist
+
+- [ ] Camera connected
+- [ ] Arduino plugged in (optional)
+- [ ] `python app.py` running
+- [ ] Browser open to `/live`
+
+---
