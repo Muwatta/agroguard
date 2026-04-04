@@ -64,7 +64,6 @@ def contains_face(frame):
         return False
 
 def agroguard_loop():
-    """Main detection loop with improved error handling"""
     global last_sprinkler_time
     
     try:
@@ -125,6 +124,10 @@ def agroguard_loop():
         
         print(f"ALERT: {pest} detected with {conf:.2f} confidence")
         
+        # After pest is confirmed and logged
+        if pest != 'none' and conf > CONF_THRESHOLD:
+            # Send to Arduino OLED
+            arduino.send_pest_alert(pest, conf)
     except Exception as e:
         print(f"Error in detection loop: {e}")
         traceback.print_exc()

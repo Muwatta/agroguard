@@ -150,9 +150,35 @@ class ArduinoController:
             val = int(command.split(":")[1])
             self.dry_threshold = val
             return f"ACK:THRESHOLD_SET:{val}"
+        elif command.startswith("PEST:"):
+            # For OLED simulation
+            pest_data = command[5:]
+            print(f"📟 OLED would show: {pest_data}")
+            return "ACK:PEST_RECEIVED"
         return "OK"
+
+    def change_screen(self, screen_name):
+        command = f"SCREEN_{screen_name.upper()}"
+        self.send_command(command)
+        print(f"📟 OLED: Switching to {screen_name} screen")
+
+    def get_oled_status(self):
+        return {
+            "active": True,
+            "screens": ["main", "stats", "about"],
+            "current_screen": "main"  # You can track this
+        }
     
-    # PUBLIC METHODS - Easy for students to use
+    def send_pest_alert(self, pest, confidence):
+        confidence_pct = int(confidence * 100)
+        command = f"PEST:{pest},{confidence_pct}"
+        
+        if not self.connected:
+            print(f"[SIM] OLED would show: {pest} ({confidence_pct}%)")
+        else:
+            self.send_command(command)
+            print(f"📟 OLED: {pest} ({confidence_pct}%)")
+    
     def sprinkler_on(self, duration=10):
         """Turn sprinkler ON"""
         print(f"🚿 Sprinkler ON for {duration}s")
@@ -230,7 +256,10 @@ class ArduinoController:
             self.ser.close()
             print("🔌 Serial connection closed")
 
+# ============================================
 # TEST FUNCTION
+# ============================================
+
 def test_arduino():
     """Test the Arduino connection"""
     print("=" * 50)
@@ -256,12 +285,18 @@ def test_arduino():
     print("\n🌵 Testing threshold...")
     arduino.set_threshold(40)
     
+    print("\n📟 Testing OLED alert...")
+    arduino.send_pest_alert("armyworm", 0.95)
+    
     print("\n" + "=" * 50)
     print("Test complete!")
     print("=" * 50)
     
     arduino.close()
 
+# ============================================
+# MAIN
+# ============================================
 
 if __name__ == "__main__":
     test_arduino()
