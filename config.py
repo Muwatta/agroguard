@@ -8,11 +8,11 @@ MOTION_MIN_AREA = 500
 MOTION_HISTORY = 3
 
 # VERY LOW THRESHOLD FOR HACKATHON
-CONF_THRESHOLD = 0.35
+CONF_THRESHOLD = 0.85
 MODEL_PATH = "model/pest_model.tflite"
 
 VISIT_WINDOW_SEC = 30  # Shorter window for faster alerts
-VISIT_THRESHOLD = 1    # Alert on first detection
+VISIT_THRESHOLD = 3    # Alert on first detection
 CRITICAL_PESTS = ["armyworm", "aphid", "mealybugs", "stem_borers", "weevil"]
 
 SPRINKLER_COOLDOWN = 30
