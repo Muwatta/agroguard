@@ -153,7 +153,7 @@ class ArduinoController:
         elif command.startswith("PEST:"):
             # For OLED simulation
             pest_data = command[5:]
-            print(f"📟 OLED would show: {pest_data}")
+            print(f"OLED would show: {pest_data}")
             return "ACK:PEST_RECEIVED"
         return "OK"
 
