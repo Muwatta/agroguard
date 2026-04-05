@@ -1,4 +1,3 @@
-# config.py - Hackathon Configuration
 import cv2
 
 CAMERA_URL = 0
@@ -6,12 +5,11 @@ FRAME_WIDTH = 640
 FRAME_HEIGHT = 480
 MOTION_MIN_AREA = 1000
 MOTION_HISTORY = 5
-# VERY LOW THRESHOLD FOR HACKATHON
-CONF_THRESHOLD = 0.85
+CONF_THRESHOLD = 0.65
 MODEL_PATH = "model/pest_model.tflite"
 
-VISIT_WINDOW_SEC = 30  # Shorter window for faster alerts
-VISIT_THRESHOLD = 3    # Alert on first detection
+VISIT_WINDOW_SEC = 30  
+VISIT_THRESHOLD = 3    
 CRITICAL_PESTS = ["armyworm", "aphid", "mealybugs", "stem_borers", "weevil"]
 
 SPRINKLER_COOLDOWN = 30

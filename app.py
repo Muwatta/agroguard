@@ -34,7 +34,6 @@ SPRINKLER_COOLDOWN = 30  # seconds between sprinkler activations
 face_cascade = None
 
 def get_face_cascade():
-    """Load face cascade classifier"""
     global face_cascade
     if face_cascade is None:
         cascade_path = cv2.data.haarcascades + 'haarcascade_frontalface_default.xml'
