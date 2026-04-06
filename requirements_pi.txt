@@ -1,8 +1,0 @@
-# AgroGuard - Raspberry Pi Requirements
-# Lightweight - No full TensorFlow
-
-flask>=2.0.0
-numpy>=1.21.0
-opencv-python>=4.5.0
-pyserial>=3.5
-Pillow>=9.0.0
