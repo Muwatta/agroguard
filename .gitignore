@@ -1,65 +1,13 @@
-# Virtual environment
-venv/
-env/
-ENV/
-.venv/
-
-# Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-# Large model files (keep locally, don't push)
-model/*.tflite
-model/*.h5
-*.tflite
-*.h5
-
-# Dataset images (too large for GitHub)
-dataset_new/
-dataset_augmented/
-dataset_temp/
-
-# Captured images
-static/captures/
-*.jpg
-*.png
-*.jpeg
-
-# Log files
-logs/
-events.json
-*.log
-
-# Environment variables
+venv/
 .env
-
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Temporary test files
-test_*.py
-demo_*.py
-collect_*.py
-download_*.py
-retrain_*.py
-augment_*.py
-quick_*.py
-
-# Test folders
-test_captures/
-demo_images/
-
-# Model files (too large for GitHub)
-model/*.tflite
-model/*.h5
-*.tflite
+*.log
+captured_*.jpg
+data/raw/
 *.h5
+*.json
+.DS_Store
+*.swp

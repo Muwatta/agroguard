@@ -174,7 +174,7 @@ def index():
                 active_alerts = len([e for e in events if e[1] in critical_pests and e[2] >= 0.80])
         
         classifier = get_classifier()
-        if classifier.interpreter is None:
+        if classifier.model is None:
             model_status = "Fallback"
         else:
             expected_cls = len(classifier.class_names) if classifier.class_names else 0
