@@ -1,489 +1,302 @@
-/*
- * AgroGuard – Interactive OLED Display + Two-Way Communication
- * Features: 
- *   - Animated welcome message
- *   - Real-time soil moisture with bar graph
- *   - Pest alerts with animations
- *   - Interactive menu system
- *   - System status screen
- */
-
 #include <Wire.h>
-#include <Adafruit_SSD1306.h>
-#include <Adafruit_GFX.h>
+#include <LiquidCrystal_I2C.h>
 
-// OLED Display Settings
-#define SCREEN_WIDTH 128
-#define SCREEN_HEIGHT 64
-#define OLED_ADDR 0x3C
+LiquidCrystal_I2C lcd(0x27, 16, 2);  // try 0x3F if 0x27 fails
 
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
-
-// Pin Definitions
+// Pin definitions
 const int MOISTURE_PIN = A0;
 const int RELAY_PIN = 7;
 const int LED_PIN = 13;
+const int BUTTON_PIN = 2;           // <-- NEW: button to change screen (optional)
 
-// Thresholds
 int dryThresholdPercent = 30;
 int wetThresholdPercent = 60;
 
-// Timing
-const unsigned long READ_INTERVAL = 5000;
-const unsigned long PUMP_MAX_ON_MS = 10000;
-const unsigned long PUMP_COOLDOWN_MS = 30000;
+const unsigned long READ_INTERVAL = 2000;      // read every 2 seconds (faster feedback)
+const unsigned long PUMP_MAX_ON_MS = 3600000;  // <-- NEW: 1 hour max (instead of 10 sec)
+const unsigned long PUMP_COOLDOWN_MS = 5000;   // 5 sec cooldown after stopping (prevents rapid cycling)
 
 unsigned long lastRead = 0;
 unsigned long pumpStartTime = 0;
 unsigned long lastPumpStopTime = 0;
-unsigned long lastAnimationTime = 0;
 
 bool pumpOn = false;
-int currentMoisture = 50;
+int currentMoisturePercent = 50;
+
+// Calibration
+int sensorMinRaw = 1023, sensorMaxRaw = 0;
+bool calibrated = false;
+int calibrationSamples = 0;
+
+// Pest & screen
 String lastPest = "None";
 int lastConfidence = 0;
 int currentScreen = 0;  // 0=main, 1=stats, 2=about
-unsigned long screenSwitchTime = 0;
+
+// Button debounce
+unsigned long lastButtonPress = 0;
+const unsigned long DEBOUNCE_DELAY = 300;
 
 // Serial buffer
 String commandBuffer = "";
 
-// ============================================
-// ANIMATION FUNCTIONS
-// ============================================
-
-void drawLoadingBar(int progress, int maxProgress) {
-  int barWidth = map(progress, 0, maxProgress, 0, SCREEN_WIDTH - 20);
-  display.fillRect(10, 30, barWidth, 8, SSD1306_WHITE);
+// ======================== LCD Helper ========================
+void lcdPrintBoth(const char* line1, const char* line2 = "") {
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(line1);
+  if (strlen(line2) > 0) {
+    lcd.setCursor(0, 1);
+    lcd.print(line2);
+  }
 }
 
+void drawMoistureBar(int percent) {
+  // Draw a simple text bar on the second line (e.g., "###----- 50%")
+  lcd.setCursor(0, 1);
+  int bars = map(percent, 0, 100, 0, 16);
+  for (int i = 0; i < 16; i++) {
+    lcd.print(i < bars ? '#' : '-');
+  }
+  lcd.setCursor(0, 0);
+  lcd.print("Mois:");
+  lcd.print(percent);
+  lcd.print("%");
+  lcd.print(" ");
+  lcd.print(pumpOn ? "PMP ON" : "PMP OFF");
+}
+
+// ======================== Animations (no backlight flashing) ========================
 void animateWelcome() {
-  // Clear screen
-  display.clearDisplay();
-  
-  // Animated logo - AgroGuard
-  for (int i = 0; i < 3; i++) {
-    display.clearDisplay();
-    display.setTextSize(2);
-    display.setTextColor(SSD1306_WHITE);
-    display.setCursor(15, 20);
-    
-    if (i == 0) display.println("Agro");
-    else if (i == 1) display.println("Guard");
-    else display.println("AI");
-    
-    display.display();
-    delay(500);
-  }
-  
-  // Loading bar animation
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(20, 15);
-  display.println("Initializing System");
-  
+  lcd.backlight();  // ensure backlight is on
+  lcdPrintBoth("AgroGuard AI", "Initializing...");
+  delay(1000);
   for (int i = 0; i <= 100; i += 10) {
-    drawLoadingBar(i, 100);
-    display.display();
-    delay(50);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Loading ");
+    lcd.print(i);
+    lcd.print("%");
+    lcd.setCursor(0, 1);
+    int bars = map(i, 0, 100, 0, 16);
+    for (int j = 0; j < 16; j++) lcd.print(j < bars ? '#' : '-');
+    delay(80);
   }
-  
-  delay(500);
-  
-  // System ready
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(15, 20);
-  display.println("System Ready!");
-  display.setCursor(10, 35);
-  display.println("Protecting Crops");
-  display.display();
+  lcdPrintBoth("System Ready!", "Protecting crops");
   delay(1500);
 }
 
 void animatePestAlert(String pest, int confidence) {
-  // Flash effect
-  for (int flash = 0; flash < 3; flash++) {
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
-    
-    if (flash % 2 == 0) {
-      display.setCursor(10, 10);
-      display.println("!!! WARNING !!!");
-      display.setCursor(15, 25);
-      display.println("PEST DETECTED");
-    } else {
-      display.setCursor(20, 20);
-      display.println("!!! ALERT !!!");
-    }
-    display.display();
-    delay(200);
-  }
-  
-  // Show pest details
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("=== PEST ALERT ===");
-  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
-  
-  display.setCursor(0, 20);
-  display.print("Pest: ");
-  display.println(pest);
-  
-  display.setCursor(0, 35);
-  display.print("Confidence: ");
-  display.print(confidence);
-  display.println("%");
-  
-  // Animated exclamation marks
-  for (int i = 0; i < 3; i++) {
-    display.fillCircle(110, 50, 5, SSD1306_WHITE);
-    display.display();
-    delay(150);
-    display.fillCircle(110, 50, 5, SSD1306_BLACK);
-    display.display();
-    delay(150);
-  }
-  
-  display.display();
+  // No backlight flashing – just show alert on LCD
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("!!! PEST !!!");
+  lcd.setCursor(0, 1);
+  lcd.print(pest);
+  lcd.print(" ");
+  lcd.print(confidence);
+  lcd.print("%");
   delay(2000);
+  // Redraw current screen
+  if (currentScreen == 0) drawMainScreen();
+  else if (currentScreen == 1) drawStatsScreen();
+  else drawAboutScreen();
 }
 
-void drawMoistureBar(int percent) {
-  int barWidth = map(percent, 0, 100, 0, 80);
-  
-  // Choose color based on moisture level
-  if (percent < 30) {
-    // Dry - Red zone
-    display.fillRect(40, 45, barWidth, 8, SSD1306_WHITE);
-    display.drawRect(40, 45, 80, 8, SSD1306_WHITE);
-    display.setCursor(35, 40);
-    display.print("DRY!");
-  } else if (percent > 70) {
-    // Wet - Blue zone
-    display.fillRect(40, 45, barWidth, 8, SSD1306_WHITE);
-    display.drawRect(40, 45, 80, 8, SSD1306_WHITE);
-    display.setCursor(35, 40);
-    display.print("WET!");
-  } else {
-    // Optimal - Green zone
-    display.fillRect(40, 45, barWidth, 8, SSD1306_WHITE);
-    display.drawRect(40, 45, 80, 8, SSD1306_WHITE);
-    display.setCursor(35, 40);
-    display.print("GOOD");
-  }
-}
-
-// ============================================
-// DISPLAY SCREENS
-// ============================================
-
+// ======================== Screens ========================
 void drawMainScreen() {
-  display.clearDisplay();
-  
-  // Title with border
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("[ AgroGuard AI System ]");
-  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
-  
-  // Soil Moisture
-  display.setCursor(0, 16);
-  display.print("Soil: ");
-  display.print(currentMoisture);
-  display.print("%");
-  
-  // Moisture bar
-  drawMoistureBar(currentMoisture);
-  
-  // Pump Status with icon
-  display.setCursor(0, 56);
-  display.print("Pump: ");
-  if (pumpOn) {
-    display.print("[ACTIVE]");
-    // Animated pump indicator
-    if ((millis() / 500) % 2 == 0) {
-      display.fillCircle(120, 58, 3, SSD1306_WHITE);
-    }
-  } else {
-    display.print("[IDLE]");
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("M:");
+  lcd.print(currentMoisturePercent);
+  lcd.print("% ");
+  lcd.print(pumpOn ? "P ON" : "P OFF");
+  lcd.setCursor(0, 1);
+  if (currentMoisturePercent < dryThresholdPercent)
+    lcd.print("DRY -> WATER");
+  else if (currentMoisturePercent >= wetThresholdPercent)
+    lcd.print("WET -> STOP");
+  else
+    lcd.print("MOISTURE OK");
+  // Show last pest on the right if space
+  if (lastPest != "None" && lastConfidence > 0) {
+    lcd.setCursor(10, 1);
+    lcd.print(lastPest.substring(0,5));
   }
-  
-  // Last pest detection
-  display.setCursor(0, 28);
-  display.print("Last Pest: ");
-  display.print(lastPest);
-  
-  if (lastConfidence > 0) {
-    display.setCursor(0, 38);
-    display.print("Conf: ");
-    display.print(lastConfidence);
-    display.print("%");
-  }
-  
-  // Interactive hint
-  display.setCursor(0, 50);
-  display.print("Press Button for Menu");
-  
-  display.display();
 }
 
 void drawStatsScreen() {
-  display.clearDisplay();
-  
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("=== SYSTEM STATS ===");
-  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
-  
-  display.setCursor(0, 16);
-  display.print("Uptime: ");
-  display.print(millis() / 1000 / 60);
-  display.println(" min");
-  
-  display.setCursor(0, 26);
-  display.print("Pump Cycles: ");
-  // You can track this variable
-  display.println("0");
-  
-  display.setCursor(0, 36);
-  display.print("Dry Threshold: ");
-  display.print(dryThresholdPercent);
-  display.println("%");
-  
-  display.setCursor(0, 46);
-  display.print("Wet Threshold: ");
-  display.print(wetThresholdPercent);
-  display.println("%");
-  
-  display.setCursor(0, 56);
-  display.print("Mode: ");
-  display.print("AUTO");
-  
-  display.display();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("Dry:");
+  lcd.print(dryThresholdPercent);
+  lcd.print("% Wet:");
+  lcd.print(wetThresholdPercent);
+  lcd.setCursor(0, 1);
+  lcd.print("Uptime:");
+  lcd.print(millis() / 1000 / 60);
+  lcd.print("m");
+  // Stay on this screen until button press or 10 seconds
+  unsigned long start = millis();
+  while (millis() - start < 10000) {
+    if (digitalRead(BUTTON_PIN) == LOW) break;
+    delay(50);
+  }
+  currentScreen = 0;
+  drawMainScreen();
 }
 
 void drawAboutScreen() {
-  display.clearDisplay();
-  
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  display.println("=== ABOUT AGROGUARD ===");
-  display.drawLine(0, 10, 128, 10, SSD1306_WHITE);
-  
-  display.setCursor(0, 16);
-  display.println("AI Pest Detection");
-  display.setCursor(0, 26);
-  display.println("Smart Irrigation");
-  display.setCursor(0, 36);
-  display.println("Real-time Alerts");
-  
-  display.setCursor(0, 50);
-  display.print("Version: 2.0");
-  
-  display.display();
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print("AgroGuard AI v2");
+  lcd.setCursor(0, 1);
+  lcd.print("Smart Irrigation");
+  delay(3000);
+  currentScreen = 0;
+  drawMainScreen();
 }
 
-// ============================================
-// PUMP CONTROL
-// ============================================
+// ======================== Pump & Sensor ========================
 void setPump(bool on) {
   pumpOn = on;
-  digitalWrite(RELAY_PIN, on ? LOW : HIGH);
+  // Relay: active HIGH (change if your relay needs LOW)
+  digitalWrite(RELAY_PIN, on ? HIGH : LOW);
   digitalWrite(LED_PIN, on ? HIGH : LOW);
-  
-  Serial.print("PUMP:");
-  Serial.println(on ? "ON" : "OFF");
-  drawMainScreen();  // Update display immediately
+  Serial.print("PUMP:"); Serial.println(on ? "ON" : "OFF");
+  if (currentScreen == 0) drawMainScreen();
 }
 
-// ============================================
-// COMMAND HANDLER (From Python)
-// ============================================
-void handleCommands() {
-  while (Serial.available()) {
-    char c = Serial.read();
-    
-    if (c == '\n') {
-      commandBuffer.trim();
-      
-      if (commandBuffer == "PUMP_ON") {
-        setPump(true);
-        pumpStartTime = millis();
-        Serial.println("ACK:PUMP_ON");
-      }
-      else if (commandBuffer == "PUMP_OFF") {
-        setPump(false);
-        lastPumpStopTime = millis();
-        Serial.println("ACK:PUMP_OFF");
-      }
-      else if (commandBuffer == "STATUS") {
-        Serial.println("AGROGUARD:READY");
-      }
-      else if (commandBuffer == "SCREEN_MAIN") {
-        currentScreen = 0;
-        drawMainScreen();
-        Serial.println("ACK:SCREEN_MAIN");
-      }
-      else if (commandBuffer == "SCREEN_STATS") {
-        currentScreen = 1;
-        drawStatsScreen();
-        Serial.println("ACK:SCREEN_STATS");
-      }
-      else if (commandBuffer == "SCREEN_ABOUT") {
-        currentScreen = 2;
-        drawAboutScreen();
-        Serial.println("ACK:SCREEN_ABOUT");
-      }
-      else if (commandBuffer.startsWith("PEST:")) {
-        String pestData = commandBuffer.substring(5);
-        int commaPos = pestData.indexOf(',');
-        if (commaPos > 0) {
-          lastPest = pestData.substring(0, commaPos);
-          lastConfidence = pestData.substring(commaPos + 1).toInt();
-          animatePestAlert(lastPest, lastConfidence);
-          drawMainScreen();
-        }
-      }
-      else if (commandBuffer.startsWith("THRESHOLD:")) {
-        int value = commandBuffer.substring(10).toInt();
-        dryThresholdPercent = value;
-        Serial.print("ACK:THRESHOLD_SET:");
-        Serial.println(value);
-        drawStatsScreen();
-      }
-      
-      commandBuffer = "";
-    } 
-    else {
-      commandBuffer += c;
-    }
-  }
-}
-
-// ============================================
-// SENSOR READING
-// ============================================
-int readMoisture() {
+int readRawMoisture() {
   long sum = 0;
-  for (int i = 0; i < 5; i++) {
-    sum += analogRead(MOISTURE_PIN);
-    delay(10);
-  }
-  return (int)(sum / 5);
+  for (int i=0; i<5; i++) { sum += analogRead(MOISTURE_PIN); delay(10); }
+  return sum / 5;
 }
 
-int toPercent(int raw) {
-  const int SENSOR_MIN_RAW = 250;
-  const int SENSOR_MAX_RAW = 750;
-  int pct = map(raw, SENSOR_MAX_RAW, SENSOR_MIN_RAW, 0, 100);
-  return constrain(pct, 0, 100);
-}
-
-// ============================================
-// BUTTON HANDLER (Interactive)
-// ============================================
-void handleInteractiveInput() {
-  // Using a button on pin 2 (optional)
-  // For now, auto-rotate screens every 10 seconds
-  if (millis() - screenSwitchTime > 10000) {
-    screenSwitchTime = millis();
-    currentScreen = (currentScreen + 1) % 3;
-    
-    switch(currentScreen) {
-      case 0:
-        drawMainScreen();
-        break;
-      case 1:
-        drawStatsScreen();
-        break;
-      case 2:
-        drawAboutScreen();
-        break;
+void autoCalibrate(int raw) {
+  if (!calibrated && calibrationSamples < 20) {
+    if (raw < sensorMinRaw) sensorMinRaw = raw;
+    if (raw > sensorMaxRaw) sensorMaxRaw = raw;
+    calibrationSamples++;
+    if (calibrationSamples >= 20) {
+      calibrated = true;
+      Serial.print("CAL: MIN="); Serial.print(sensorMinRaw);
+      Serial.print(" MAX="); Serial.println(sensorMaxRaw);
+      lcdPrintBoth("Calibrated!", "Ready");
+      delay(1000);
+      drawMainScreen();
     }
   }
 }
 
-// ============================================
-// SETUP
-// ============================================
-void setup() {
-  Serial.begin(9600);
-  
-  pinMode(RELAY_PIN, OUTPUT);
-  pinMode(LED_PIN, OUTPUT);
-  
-  setPump(false);
-  
-  // Initialize OLED
-  if (!display.begin(SSD1306_SWITCHCAPVCC, OLED_ADDR)) {
-    Serial.println("OLED not found!");
-  } else {
-    // Animated welcome sequence
-    animateWelcome();
-  }
-  
-  Serial.println("AGROGUARD:READY");
-  Serial.println("STATUS:SYSTEM_INITIALIZED");
-  Serial.println("OLED:INTERACTIVE_MODE_ACTIVE");
-  
-  drawMainScreen();
-  screenSwitchTime = millis();
-  delay(2000);
+int rawToPercent(int raw) {
+  if (!calibrated) return map(constrain(raw, 250, 750), 750, 250, 0, 100);
+  return constrain(map(raw, sensorMinRaw, sensorMaxRaw, 0, 100), 0, 100);
 }
 
-// ============================================
-// MAIN LOOP
-// ============================================
-void loop() {
-  // Handle commands from Python
-  handleCommands();
-  
-  // Handle interactive display (auto-rotate or button)
-  handleInteractiveInput();
-  
+// ======================== Irrigation Logic (continuous pump) ========================
+void manageIrrigation(int pct) {
   unsigned long now = millis();
   
-  // Safety: Stop pump if running too long
+  // Safety: stop pump only if it runs longer than allowed (now 1 hour)
   if (pumpOn && (now - pumpStartTime >= PUMP_MAX_ON_MS)) {
-    Serial.println("STATUS:PUMP_TIMEOUT_SAFETY");
+    Serial.println("SAFETY: PUMP TIMEOUT (1 hour)");
     setPump(false);
     lastPumpStopTime = now;
   }
   
-  // Periodic sensor read
+  bool cooldownOk = (now - lastPumpStopTime >= PUMP_COOLDOWN_MS);
+  
+  // Start pump if dry and cooldown finished
+  if (!pumpOn && pct < dryThresholdPercent && cooldownOk) {
+    Serial.println("SOIL_DRY -> PUMP ON");
+    setPump(true);
+    pumpStartTime = now;
+  }
+  // Stop pump if wet
+  else if (pumpOn && pct >= wetThresholdPercent) {
+    Serial.println("SOIL_WET -> PUMP OFF");
+    setPump(false);
+    lastPumpStopTime = now;
+  }
+}
+
+// ======================== Serial & Button Handling ========================
+void handleSerialCommands() {
+  while (Serial.available()) {
+    char c = Serial.read();
+    if (c == '\n') {
+      commandBuffer.trim();
+      if (commandBuffer == "PUMP_ON") { setPump(true); pumpStartTime = millis(); Serial.println("ACK:PUMP_ON"); }
+      else if (commandBuffer == "PUMP_OFF") { setPump(false); lastPumpStopTime = millis(); Serial.println("ACK:PUMP_OFF"); }
+      else if (commandBuffer == "STATUS") Serial.println("AGROGUARD:READY");
+      else if (commandBuffer == "SCREEN_STATS") { drawStatsScreen(); currentScreen = 1; }
+      else if (commandBuffer == "SCREEN_ABOUT") { drawAboutScreen(); currentScreen = 2; }
+      else if (commandBuffer == "SCREEN_MAIN") { currentScreen = 0; drawMainScreen(); }
+      else if (commandBuffer.startsWith("PEST:")) {
+        String data = commandBuffer.substring(5);
+        int comma = data.indexOf(',');
+        if (comma > 0) {
+          lastPest = data.substring(0, comma);
+          lastConfidence = data.substring(comma + 1).toInt();
+          animatePestAlert(lastPest, lastConfidence);
+          if (currentScreen == 0) drawMainScreen();
+        }
+      }
+      else if (commandBuffer.startsWith("THRESHOLD:")) {
+        dryThresholdPercent = commandBuffer.substring(10).toInt();
+        Serial.print("THRESHOLD_SET:"); Serial.println(dryThresholdPercent);
+        lcdPrintBoth("Threshold set", (String(dryThresholdPercent) + "% dry").c_str());
+        delay(1000);
+        drawMainScreen();
+      }
+      commandBuffer = "";
+    } else commandBuffer += c;
+  }
+}
+
+void handleButton() {
+  if (digitalRead(BUTTON_PIN) == LOW && (millis() - lastButtonPress > DEBOUNCE_DELAY)) {
+    lastButtonPress = millis();
+    currentScreen = (currentScreen + 1) % 3;
+    switch(currentScreen) {
+      case 1: drawStatsScreen(); break;
+      case 2: drawAboutScreen(); break;
+      default: drawMainScreen();
+    }
+  }
+}
+
+// ======================== Setup ========================
+void setup() {
+  Serial.begin(9600);
+  pinMode(RELAY_PIN, OUTPUT);
+  pinMode(LED_PIN, OUTPUT);
+  pinMode(BUTTON_PIN, INPUT_PULLUP);  // internal pull-up, button to GND
+  setPump(false);
+  
+  lcd.init();
+  lcd.backlight();          // keep backlight ON permanently
+  lcd.clear();
+  animateWelcome();
+  drawMainScreen();
+  Serial.println("AGROGUARD:READY");
+}
+
+// ======================== Loop ========================
+void loop() {
+  handleSerialCommands();
+  handleButton();           // <-- NEW: manual screen switching
+  
+  unsigned long now = millis();
   if (now - lastRead >= READ_INTERVAL) {
     lastRead = now;
-    
-    int raw = readMoisture();
-    int pct = toPercent(raw);
-    currentMoisture = pct;
-    
-    // Send to Python
-    Serial.print("MOISTURE,");
-    Serial.print(raw);
-    Serial.print(",");
-    Serial.println(pct);
-    
-    // Update main screen if currently showing
-    if (currentScreen == 0) {
-      drawMainScreen();
-    }
-    
-    // Auto-irrigation logic
-    bool cooldownElapsed = (now - lastPumpStopTime >= PUMP_COOLDOWN_MS);
-    
-    if (!pumpOn && pct < dryThresholdPercent && cooldownElapsed) {
-      Serial.println("STATUS:SOIL_DRY_AUTO_START");
-      setPump(true);
-      pumpStartTime = now;
-    }
-    else if (pumpOn && pct >= wetThresholdPercent) {
-      Serial.println("STATUS:SOIL_WET_AUTO_STOP");
-      setPump(false);
-      lastPumpStopTime = now;
-    }
+    int raw = readRawMoisture();
+    autoCalibrate(raw);
+    int pct = rawToPercent(raw);
+    currentMoisturePercent = pct;
+    Serial.print("MOISTURE,"); Serial.print(raw); Serial.print(","); Serial.println(pct);
+    manageIrrigation(pct);
+    if (currentScreen == 0) drawMainScreen();
   }
 }

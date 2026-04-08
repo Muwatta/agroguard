@@ -11,3 +11,7 @@ data/raw/
 *.json
 .DS_Store
 *.swp
+static/captures/*.jpg
+static/captures/
+model/*.tflite
+model/*.h5
