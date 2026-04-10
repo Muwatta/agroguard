@@ -18,17 +18,18 @@ from advisory import get_advice
 from storage import log_event, get_events
 from hardware_controller import hardware
 from arduino_controller import arduino
+from config import CONF_THRESHOLD, CAMERA_URL
 
 print(f"Starting AgroGuard AI on {platform.system()}")
 
 app = Flask(__name__)
 
-camera = Camera(0)
+camera = Camera(CAMERA_URL)
 camera.start()
 
 # Global variables for sprinkler cooldown
 last_sprinkler_time = None
-SPRINKLER_COOLDOWN = 30  # seconds between sprinkler activations
+SPRINKLER_COOLDOWN = 30
 
 # Face cascade (load once)
 face_cascade = None
@@ -45,7 +46,6 @@ def get_face_cascade():
     return face_cascade
 
 def contains_face(frame):
-    """Detect if frame contains a human face"""
     try:
         cascade = get_face_cascade()
         if cascade.empty():
@@ -74,7 +74,6 @@ def agroguard_loop():
         if not motion:
             return
             
-        # Skip if face detected
         if contains_face(frame):
             return
 
@@ -84,14 +83,10 @@ def agroguard_loop():
         pest, conf = classify(img_path)
         print(f"Classified: {pest} ({conf:.2f})")
 
-        from config import CONF_THRESHOLD
-
-        # Skip none class (background/face)
         if pest == 'none':
             print(f"Classified as 'none' (background) - skipping")
             return
             
-        # Skip unidentified or low confidence
         if pest == 'unidentified' or conf < CONF_THRESHOLD:
             print(f"Skipping: pest={pest}, confidence={conf:.2f}")
             return
@@ -123,36 +118,30 @@ def agroguard_loop():
         
         print(f"ALERT: {pest} detected with {conf:.2f} confidence")
         
-        # After pest is confirmed and logged
         if pest != 'none' and conf > CONF_THRESHOLD:
-            # Send to Arduino OLED
             arduino.send_pest_alert(pest, conf)
     except Exception as e:
         print(f"Error in detection loop: {e}")
         traceback.print_exc()
 
-# Template Filters
 @app.template_filter('datetime')
 def format_datetime(timestamp):
     return datetime.fromtimestamp(timestamp).strftime("%Y-%m-%d %H:%M:%S")
 
 @app.context_processor
 def inject_globals():
-    from config import CAMERA_URL, CONF_THRESHOLD
     return {
         'config': {'CAMERA_URL': CAMERA_URL, 'CONF_THRESHOLD': CONF_THRESHOLD},
         'platform': platform.system(),
         'hardware_mode': hardware.simulation_mode
     }
 
-# Web Routes
 @app.route('/')
 def index():
     try:
         events = get_events()
         total = len(events)
         
-        # Initialize default values
         unique = 0
         pest_counts = {}
         captures_today = 0
@@ -161,13 +150,11 @@ def index():
         
         if events and len(events) > 0:
             if isinstance(events[0], dict):
-                # New format (dict)
                 unique = len(set(e['pest'] for e in events))
                 pest_counts = Counter(e['pest'] for e in events)
                 captures_today = len([e for e in events if datetime.fromtimestamp(e['timestamp']).date() == datetime.now().date()])
                 active_alerts = len([e for e in events if e['pest'] in critical_pests and e['confidence'] >= 0.80])
             else:
-                # Old format (tuple)
                 unique = len(set(e[1] for e in events))
                 pest_counts = Counter(e[1] for e in events)
                 captures_today = len([e for e in events if datetime.fromtimestamp(e[0]).date() == datetime.now().date()])
@@ -211,14 +198,12 @@ def live_feed():
 
 @app.route('/analytics')
 def analytics():
-    """Analytics dashboard"""
     try:
         events = get_events()
         hourly_counts = {}
         avg_conf = 0
         
         if events and len(events) > 0:
-            # Handle both dict and tuple formats
             if isinstance(events[0], dict):
                 hours = [datetime.fromtimestamp(e['timestamp']).hour for e in events]
                 confs = [e['confidence'] for e in events]
@@ -236,7 +221,7 @@ def analytics():
         print(f"Error in analytics route: {e}")
         traceback.print_exc()
         return render_template("analytics.html", error=str(e)), 500
-    
+
 @app.route('/settings')
 def settings():
     return render_template("settings.html")
@@ -252,7 +237,6 @@ def video_feed():
     return Response(gen_frames(camera),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-# API Routes
 @app.route('/api/events')
 def api_events():
     try:
@@ -316,7 +300,6 @@ def api_sensors():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-# Main Entry Point
 if __name__ == "__main__":
     def detection_thread():
         print("Detection loop started")
