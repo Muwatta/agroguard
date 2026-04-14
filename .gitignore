@@ -16,3 +16,5 @@ static/captures/
 model/*.tflite
 model/*.h5
 .env
+*venv
+venv
